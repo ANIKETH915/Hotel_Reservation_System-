@@ -1,0 +1,14 @@
+target/
+out/
+lib/
+*.class
+*.jar
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.log
+.hotel-reservation/
+*.db
+application.properties.local
