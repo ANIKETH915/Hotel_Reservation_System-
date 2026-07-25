@@ -7,14 +7,14 @@ import components.ModernTable;
 import components.PageHeader;
 import components.StyledButton;
 import components.StyledComboBox;
+import components.TableCard;
 import components.TableEmptyOverlay;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import model.Room;
@@ -38,12 +38,13 @@ public class RoomPanel extends JPanel implements MainFrame.RefreshablePanel {
     };
     private ModernTable table;
     private TableEmptyOverlay overlay;
-    private List<Room> rooms = List.of();
+    private TableCard tableCard;
+    private java.util.List<Room> rooms = java.util.List.of();
     private PageHeader pageHeader;
 
     public RoomPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        setLayout(new BorderLayout(0, 16));
+        setLayout(new BorderLayout(0, UiLayout.SPACE_MD));
         setBackground(Theme.bgPrimary());
         buildUi();
     }
@@ -55,7 +56,7 @@ public class RoomPanel extends JPanel implements MainFrame.RefreshablePanel {
         addBtn.setToolTipText("Add a new room to inventory");
         pageHeader.addAction(addBtn);
 
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, UiLayout.SPACE_SM, UiLayout.SPACE_XS));
         toolbar.setOpaque(false);
 
         StyledButton editBtn = new StyledButton("Edit", StyledButton.Style.SECONDARY);
@@ -79,15 +80,16 @@ public class RoomPanel extends JPanel implements MainFrame.RefreshablePanel {
                 "Add your first room to start taking reservations.");
         empty.setIconKey("rooms");
         empty.setAction("Add Room", () -> new RoomFormDialog(mainFrame, null, this::afterMutation).setVisible(true));
-        overlay = new TableEmptyOverlay(new JScrollPane(table), empty);
+        overlay = new TableEmptyOverlay(UiLayout.tableScroll(table), empty);
+        tableCard = new TableCard(overlay);
 
-        JPanel north = new JPanel(new BorderLayout(0, 12));
+        JPanel north = new JPanel(new BorderLayout(0, UiLayout.SPACE_SM));
         north.setOpaque(false);
         north.add(pageHeader, BorderLayout.NORTH);
         north.add(toolbar, BorderLayout.SOUTH);
 
         add(north, BorderLayout.NORTH);
-        add(overlay, BorderLayout.CENTER);
+        add(tableCard, BorderLayout.CENTER);
 
         addBtn.addActionListener(e -> new RoomFormDialog(mainFrame, null, this::afterMutation).setVisible(true));
         editBtn.addActionListener(e -> editSelected());
@@ -184,9 +186,9 @@ public class RoomPanel extends JPanel implements MainFrame.RefreshablePanel {
 
     @Override
     public void refresh() {
-        new SwingWorker<List<Room>, Void>() {
+        new SwingWorker<java.util.List<Room>, Void>() {
             @Override
-            protected List<Room> doInBackground() throws Exception {
+            protected java.util.List<Room> doInBackground() throws Exception {
                 return roomService.list();
             }
 
@@ -224,6 +226,8 @@ public class RoomPanel extends JPanel implements MainFrame.RefreshablePanel {
         setBackground(Theme.bgPrimary());
         pageHeader.applyTheme();
         table.applyTheme();
+        overlay.applyTheme();
+        tableCard.applyTheme();
         repaint();
     }
 }

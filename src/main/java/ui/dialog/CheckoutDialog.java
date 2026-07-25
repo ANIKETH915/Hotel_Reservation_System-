@@ -3,6 +3,7 @@ package ui.dialog;
 import components.StyledButton;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -10,7 +11,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import model.Booking;
 import service.BookingService;
 import utils.CurrencyUtil;
@@ -27,11 +27,11 @@ public class CheckoutDialog extends JDialog {
         this.booking = booking;
         this.onComplete = onComplete;
 
-        JPanel root = new JPanel(new BorderLayout(0, 16));
+        JPanel root = new JPanel(new BorderLayout(0, UiLayout.SPACE_MD));
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(24, 28, 24, 28));
+        root.setBorder(UiLayout.dialogBorder());
 
-        JPanel details = new JPanel(new GridLayout(0, 2, 12, 10));
+        JPanel details = new JPanel(new GridLayout(0, 2, UiLayout.SPACE_MD, UiLayout.SPACE_SM + 2));
         details.setOpaque(false);
         addDetail(details, "Guest", booking.getCustomerName());
         addDetail(details, "Room", booking.getRoomNumber() + " (" + booking.getRoomType() + ")");
@@ -41,7 +41,7 @@ public class CheckoutDialog extends JDialog {
         addDetail(details, "Payment", booking.getPaymentStatus().getLabel());
         root.add(details, BorderLayout.CENTER);
 
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiLayout.SPACE_SM, 0));
         buttons.setOpaque(false);
 
         StyledButton cancelBtn = new StyledButton("Cancel", StyledButton.Style.SECONDARY);

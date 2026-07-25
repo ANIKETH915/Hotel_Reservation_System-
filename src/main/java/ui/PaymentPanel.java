@@ -4,16 +4,17 @@ import components.EmptyStatePanel;
 import components.ModernTable;
 import components.PageHeader;
 import components.StatCard;
+import components.TableCard;
 import components.TableEmptyOverlay;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import dao.PaymentDao;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import model.Payment;
@@ -36,13 +37,15 @@ public class PaymentPanel extends JPanel implements MainFrame.RefreshablePanel {
     };
     private ModernTable table;
     private TableEmptyOverlay overlay;
+    private TableCard tableCard;
     private StatCard todayCard;
     private StatCard monthCard;
     private PageHeader pageHeader;
+    private JPanel stats;
 
     public PaymentPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        setLayout(new BorderLayout(0, 16));
+        setLayout(new BorderLayout(0, UiLayout.SPACE_MD));
         setBackground(Theme.bgPrimary());
         buildUi();
     }
@@ -50,7 +53,7 @@ public class PaymentPanel extends JPanel implements MainFrame.RefreshablePanel {
     private void buildUi() {
         pageHeader = new PageHeader("Payments", "All recorded transactions from the payments ledger");
 
-        JPanel stats = new JPanel(new GridLayout(1, 2, 16, 0));
+        stats = new JPanel(new GridLayout(1, 2, UiLayout.SPACE_MD, 0));
         stats.setOpaque(false);
         todayCard = new StatCard("Today's Revenue", CurrencyUtil.format(BigDecimal.ZERO), Theme.EMERALD);
         monthCard = new StatCard("This Month", CurrencyUtil.format(BigDecimal.ZERO), Theme.ROYAL_BLUE);
@@ -61,15 +64,28 @@ public class PaymentPanel extends JPanel implements MainFrame.RefreshablePanel {
         EmptyStatePanel empty = new EmptyStatePanel("No payments recorded",
                 "Payments appear here after you record them on a booking.");
         empty.setIconKey("payments");
-        overlay = new TableEmptyOverlay(new JScrollPane(table), empty);
+        overlay = new TableEmptyOverlay(UiLayout.tableScroll(table), empty);
+        tableCard = new TableCard(overlay);
 
-        JPanel north = new JPanel(new BorderLayout(0, 16));
+        JPanel north = new JPanel(new BorderLayout(0, UiLayout.SPACE_MD));
         north.setOpaque(false);
         north.add(pageHeader, BorderLayout.NORTH);
         north.add(stats, BorderLayout.SOUTH);
 
         add(north, BorderLayout.NORTH);
-        add(overlay, BorderLayout.CENTER);
+        add(tableCard, BorderLayout.CENTER);
+
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                int cols = getWidth() < 640 ? 1 : 2;
+                GridLayout layout = (GridLayout) stats.getLayout();
+                if (layout.getColumns() != cols) {
+                    stats.setLayout(new GridLayout(cols == 1 ? 2 : 1, cols, UiLayout.SPACE_MD, UiLayout.SPACE_MD));
+                    stats.revalidate();
+                }
+            }
+        });
     }
 
     @Override
@@ -119,6 +135,8 @@ public class PaymentPanel extends JPanel implements MainFrame.RefreshablePanel {
         todayCard.applyTheme();
         monthCard.applyTheme();
         table.applyTheme();
+        overlay.applyTheme();
+        tableCard.applyTheme();
         repaint();
     }
 

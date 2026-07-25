@@ -1,16 +1,15 @@
 package ui;
 
-import components.AppEvents;
-import components.CardPanel;
 import components.EmptyStatePanel;
 import components.ModernTable;
 import components.PageHeader;
 import components.StatCard;
+import components.TableCard;
 import components.TableEmptyOverlay;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +18,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import model.Booking;
 import model.DashboardStats;
@@ -45,6 +43,8 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
     private PageHeader pageHeader;
     private JPanel statsGrid;
     private JPanel arrivalDepartureGrid;
+    private JScrollPane pageScroll;
+    private UiLayout.ViewportWidthPanel content;
 
     private final DefaultTableModel activeModel = nonEditable("Guest", "Room", "Status", "Check-out");
     private final DefaultTableModel checkInModel = nonEditable("Guest", "Room", "Check-in");
@@ -55,12 +55,17 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
     private TableEmptyOverlay activeOverlay;
     private TableEmptyOverlay checkInOverlay;
     private TableEmptyOverlay checkOutOverlay;
+    private JScrollPane activeScroll;
+    private JScrollPane checkInScroll;
+    private JScrollPane checkOutScroll;
+    private TableCard activeCard;
+    private TableCard inCard;
+    private TableCard outCard;
 
     public DashboardPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
         setBackground(Theme.bgPrimary());
-        setBorder(new EmptyBorder(0, 0, 0, 0));
         buildUi();
     }
 
@@ -77,7 +82,7 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         pageHeader = new PageHeader("Operations Overview",
                 "Live property status · " + DateUtil.format(LocalDate.now()));
 
-        statsGrid = new JPanel(new GridLayout(2, 4, 16, 16));
+        statsGrid = new JPanel(new GridLayout(2, 4, UiLayout.SPACE_MD, UiLayout.SPACE_MD));
         statsGrid.setOpaque(false);
 
         totalRoomsCard = new StatCard("Total Rooms", "0", Theme.ROYAL_BLUE);
@@ -112,34 +117,40 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                 "Departures scheduled for today will show here.");
         outEmpty.setIconKey("bookings");
 
-        activeOverlay = new TableEmptyOverlay(wrap(activeTable), activeEmpty);
-        checkInOverlay = new TableEmptyOverlay(wrap(checkInTable), inEmpty);
-        checkOutOverlay = new TableEmptyOverlay(wrap(checkOutTable), outEmpty);
+        activeScroll = UiLayout.tableScroll(activeTable);
+        checkInScroll = UiLayout.tableScroll(checkInTable);
+        checkOutScroll = UiLayout.tableScroll(checkOutTable);
 
-        CardPanel activeCard = sectionCard("Active Stays Today", activeOverlay);
-        CardPanel inCard = sectionCard("Today's Check-ins", checkInOverlay);
-        CardPanel outCard = sectionCard("Today's Check-outs", checkOutOverlay);
+        activeOverlay = new TableEmptyOverlay(activeScroll, activeEmpty);
+        checkInOverlay = new TableEmptyOverlay(checkInScroll, inEmpty);
+        checkOutOverlay = new TableEmptyOverlay(checkOutScroll, outEmpty);
 
-        arrivalDepartureGrid = new JPanel(new GridLayout(1, 2, 16, 0));
+        activeCard = new TableCard("Active Stays Today", activeOverlay);
+        inCard = new TableCard("Today's Check-ins", checkInOverlay);
+        outCard = new TableCard("Today's Check-outs", checkOutOverlay);
+
+        arrivalDepartureGrid = new JPanel(new GridLayout(1, 2, UiLayout.SPACE_MD, UiLayout.SPACE_MD));
         arrivalDepartureGrid.setOpaque(false);
         arrivalDepartureGrid.add(inCard);
         arrivalDepartureGrid.add(outCard);
 
-        JPanel content = new JPanel();
+        content = new UiLayout.ViewportWidthPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setOpaque(false);
-        content.add(pageHeader);
-        content.add(statsGrid);
-        content.add(Box.createVerticalStrut(16));
-        content.add(activeCard);
-        content.add(Box.createVerticalStrut(16));
-        content.add(arrivalDepartureGrid);
+        content.setBorder(new javax.swing.border.EmptyBorder(0, 0, UiLayout.SPACE_MD, 0));
 
-        JScrollPane scroll = new JScrollPane(content);
-        scroll.setBorder(null);
-        scroll.getViewport().setBackground(Theme.bgPrimary());
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        add(scroll, BorderLayout.CENTER);
+        content.add(UiLayout.fullWidth(pageHeader));
+        content.add(UiLayout.fullWidth(statsGrid));
+        content.add(Box.createVerticalStrut(UiLayout.SPACE_MD));
+        content.add(UiLayout.fullWidth(activeCard));
+        content.add(Box.createVerticalStrut(UiLayout.SPACE_MD));
+        content.add(UiLayout.fullWidth(arrivalDepartureGrid));
+
+        pageScroll = UiLayout.pageScroll(content);
+        add(pageScroll, BorderLayout.CENTER);
+
+        fitDashboardTables();
+
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent event) {
@@ -147,34 +158,31 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                 int columns = availableWidth < 700 ? 1 : availableWidth < 980 ? 2 : 4;
                 GridLayout layout = (GridLayout) statsGrid.getLayout();
                 if (layout.getColumns() != columns) {
-                    statsGrid.setLayout(new GridLayout(0, columns, 16, 16));
+                    statsGrid.setLayout(new GridLayout(0, columns, UiLayout.SPACE_MD, UiLayout.SPACE_MD));
                     statsGrid.revalidate();
                 }
                 int lowerRows = availableWidth < 700 ? 2 : 1;
+                int lowerCols = availableWidth < 700 ? 1 : 2;
                 GridLayout lowerLayout = (GridLayout) arrivalDepartureGrid.getLayout();
-                if (lowerLayout.getRows() != lowerRows) {
-                    arrivalDepartureGrid.setLayout(new GridLayout(lowerRows, 1, 16, 16));
+                if (lowerLayout.getRows() != lowerRows || lowerLayout.getColumns() != lowerCols) {
+                    arrivalDepartureGrid.setLayout(new GridLayout(lowerRows, lowerCols, UiLayout.SPACE_MD, UiLayout.SPACE_MD));
                     arrivalDepartureGrid.revalidate();
                 }
+                UiLayout.refreshFullWidth(pageHeader);
+                UiLayout.refreshFullWidth(statsGrid);
+                UiLayout.refreshFullWidth(activeCard);
+                UiLayout.refreshFullWidth(arrivalDepartureGrid);
             }
         });
     }
 
-    private JScrollPane wrap(ModernTable table) {
-        JScrollPane sp = new JScrollPane(table);
-        sp.setBorder(null);
-        sp.setPreferredSize(new Dimension(100, 260));
-        return sp;
-    }
-
-    private CardPanel sectionCard(String title, JPanel body) {
-        CardPanel card = new CardPanel(new BorderLayout(0, 8));
-        javax.swing.JLabel label = new javax.swing.JLabel(title);
-        label.setFont(Theme.fontMedium(14));
-        label.setForeground(Theme.textPrimary());
-        card.add(label, BorderLayout.NORTH);
-        card.add(body, BorderLayout.CENTER);
-        return card;
+    private void fitDashboardTables() {
+        UiLayout.fitTableScroll(activeScroll, activeTable);
+        UiLayout.fitTableScroll(checkInScroll, checkInTable);
+        UiLayout.fitTableScroll(checkOutScroll, checkOutTable);
+        UiLayout.refreshFullWidth(activeCard);
+        UiLayout.refreshFullWidth(arrivalDepartureGrid);
+        content.revalidate();
     }
 
     @Override
@@ -208,6 +216,7 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                     activeOverlay.updateVisibility();
                     checkInOverlay.updateVisibility();
                     checkOutOverlay.updateVisibility();
+                    fitDashboardTables();
                     pageHeader.setSubtitle("Live property status · " + DateUtil.format(LocalDate.now())
                             + " · Auto-refreshes every 60s");
                 } catch (Exception ex) {
@@ -237,18 +246,6 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         occupancyCard.setHint("Based on rooms currently in use");
     }
 
-    private void fillActive(List<Booking> bookings) {
-        activeModel.setRowCount(0);
-        for (Booking b : bookings) {
-            activeModel.addRow(new Object[]{
-                    b.getCustomerName(),
-                    b.getRoomNumber(),
-                    b.getBookingStatus().getLabel(),
-                    DateUtil.format(b.getCheckOut())
-            });
-        }
-    }
-
     private void fillSimple(DefaultTableModel model, List<Booking> bookings, boolean checkIn) {
         model.setRowCount(0);
         for (Booking b : bookings) {
@@ -263,6 +260,9 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
     @Override
     public void applyTheme() {
         setBackground(Theme.bgPrimary());
+        if (pageScroll != null) {
+            pageScroll.getViewport().setBackground(Theme.bgPrimary());
+        }
         pageHeader.applyTheme();
         totalRoomsCard.applyTheme();
         availableCard.applyTheme();
@@ -275,6 +275,12 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         activeTable.applyTheme();
         checkInTable.applyTheme();
         checkOutTable.applyTheme();
+        activeOverlay.applyTheme();
+        checkInOverlay.applyTheme();
+        checkOutOverlay.applyTheme();
+        activeCard.applyTheme();
+        inCard.applyTheme();
+        outCard.applyTheme();
         repaint();
     }
 

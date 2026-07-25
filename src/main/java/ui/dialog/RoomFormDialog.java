@@ -5,6 +5,7 @@ import components.StyledButton;
 import components.StyledComboBox;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -17,7 +18,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import model.Room;
 import model.RoomStatus;
 import model.RoomType;
@@ -58,7 +58,7 @@ public class RoomFormDialog extends JDialog {
     private void buildUi() {
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(20, 24, 20, 24));
+        root.setBorder(UiLayout.dialogBorder());
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -68,7 +68,7 @@ public class RoomFormDialog extends JDialog {
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-        gbc.insets = new java.awt.Insets(0, 0, 12, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
 
         int row = 0;
         addField(form, gbc, row++, "Room Number", numberField);
@@ -85,11 +85,13 @@ public class RoomFormDialog extends JDialog {
         StyledButton browseBtn = new StyledButton("Browse Image", StyledButton.Style.SECONDARY);
         browseBtn.addActionListener(e -> chooseImage());
         gbc.gridy = row++;
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_SM, 0);
         form.add(browseBtn, gbc);
 
         StyledButton saveBtn = new StyledButton(existing == null ? "Add Room" : "Save Changes");
         saveBtn.setPreferredSize(new Dimension(0, 40));
         gbc.gridy = row;
+        gbc.insets = new java.awt.Insets(UiLayout.SPACE_SM, 0, 0, 0);
         form.add(saveBtn, gbc);
         saveBtn.addActionListener(e -> save());
 
@@ -99,14 +101,14 @@ public class RoomFormDialog extends JDialog {
 
     private void addField(JPanel form, GridBagConstraints gbc, int row, String label, java.awt.Component field) {
         gbc.gridy = row * 2;
-        gbc.insets = new java.awt.Insets(0, 0, 4, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_XS, 0);
         JLabel lbl = new JLabel(label);
         lbl.setFont(Theme.fontMedium(12));
         lbl.setForeground(Theme.textSecondary());
         form.add(lbl, gbc);
 
         gbc.gridy = row * 2 + 1;
-        gbc.insets = new java.awt.Insets(0, 0, 12, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         form.add(field, gbc);
     }
 

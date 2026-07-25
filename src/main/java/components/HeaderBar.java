@@ -35,7 +35,7 @@ public class HeaderBar extends JPanel {
         setBackground(Theme.bgHeader());
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.border()),
-                new EmptyBorder(10, 24, 10, 24)
+                new EmptyBorder(UiLayout.SPACE_SM + 2, UiLayout.PAGE_INSET + 4, UiLayout.SPACE_SM + 2, UiLayout.PAGE_INSET + 4)
         ));
         setPreferredSize(new Dimension(0, 80));
 
@@ -86,11 +86,11 @@ public class HeaderBar extends JPanel {
             }
         });
 
-        JPanel center = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 8));
+        JPanel center = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, UiLayout.SPACE_SM));
         center.setOpaque(false);
         center.add(searchField);
 
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiLayout.SPACE_MD - 4, UiLayout.SPACE_SM));
         right.setOpaque(false);
 
         clockLabel = new JLabel();
@@ -168,7 +168,7 @@ public class HeaderBar extends JPanel {
         setBackground(Theme.bgHeader());
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.border()),
-                new EmptyBorder(10, 24, 10, 24)
+                new EmptyBorder(UiLayout.SPACE_SM + 2, UiLayout.PAGE_INSET + 4, UiLayout.SPACE_SM + 2, UiLayout.PAGE_INSET + 4)
         ));
         hotelLabel.setForeground(Theme.textPrimary());
         sectionLabel.setForeground(Theme.textSecondary());

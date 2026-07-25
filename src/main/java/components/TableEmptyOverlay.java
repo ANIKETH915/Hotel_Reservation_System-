@@ -1,5 +1,6 @@
 package components;
 
+import java.awt.Dimension;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -22,6 +23,10 @@ public class TableEmptyOverlay extends JPanel {
         emptyState.setAlignmentY(0.5f);
         scrollPane.setAlignmentX(0.5f);
         scrollPane.setAlignmentY(0.5f);
+        UiLayout.configureScrollPane(scrollPane);
+        if (scrollPane.getBorder() == null || scrollPane.getBorder().getBorderInsets(scrollPane).top == 0) {
+            scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        }
         add(scrollPane);
         add(emptyState);
         table.getModel().addTableModelListener((TableModelEvent e) -> updateVisibility());
@@ -38,5 +43,36 @@ public class TableEmptyOverlay extends JPanel {
 
     public EmptyStatePanel getEmptyState() {
         return emptyState;
+    }
+
+    public JScrollPane getScrollPane() {
+        return scrollPane;
+    }
+
+    public JTable getTable() {
+        return table;
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        Dimension scrollPref = scrollPane.getPreferredSize();
+        Dimension emptyPref = emptyState.getPreferredSize();
+        if (emptyState.isVisible()) {
+            return new Dimension(
+                    Math.max(scrollPref.width, emptyPref.width),
+                    Math.max(scrollPref.height, emptyPref.height));
+        }
+        return scrollPref;
+    }
+
+    @Override
+    public Dimension getMinimumSize() {
+        return new Dimension(120, 120);
+    }
+
+    public void applyTheme() {
+        emptyState.applyTheme();
+        scrollPane.getViewport().setBackground(Theme.bgCard());
+        repaint();
     }
 }

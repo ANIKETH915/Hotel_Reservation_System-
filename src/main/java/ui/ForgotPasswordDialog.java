@@ -4,6 +4,7 @@ import components.ModernTextField;
 import components.StyledButton;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -12,7 +13,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import service.AuthService;
 
 public class ForgotPasswordDialog extends JDialog {
@@ -26,7 +26,7 @@ public class ForgotPasswordDialog extends JDialog {
         super(owner, "Reset Password", true);
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(20, 24, 20, 24));
+        root.setBorder(UiLayout.dialogBorder());
 
         JLabel title = new JLabel("Forgot Password");
         title.setFont(Theme.fontBold(18));

@@ -2,6 +2,7 @@ package ui.dialog;
 
 import components.ModernTable;
 import components.Theme;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.List;
@@ -10,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import model.Booking;
 import model.Customer;
@@ -31,11 +31,11 @@ public class CustomerDetailDialog extends JDialog {
 
     public CustomerDetailDialog(java.awt.Window owner, Customer customer) {
         super(owner, "Customer — " + customer.getFullName(), ModalityType.APPLICATION_MODAL);
-        JPanel root = new JPanel(new BorderLayout(0, 16));
+        JPanel root = new JPanel(new BorderLayout(0, UiLayout.SPACE_MD));
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(24, 28, 24, 28));
+        root.setBorder(UiLayout.dialogBorder());
 
-        JPanel info = new JPanel(new GridLayout(0, 2, 12, 8));
+        JPanel info = new JPanel(new GridLayout(0, 2, UiLayout.SPACE_MD, UiLayout.SPACE_SM));
         info.setOpaque(false);
         addInfo(info, "Full Name", customer.getFullName());
         addInfo(info, "Email", customer.getEmail());
@@ -46,8 +46,7 @@ public class CustomerDetailDialog extends JDialog {
                 ? DateUtil.format(customer.getCreatedAt()) : "-");
 
         ModernTable table = new ModernTable(historyModel);
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(javax.swing.BorderFactory.createLineBorder(Theme.border()));
+        JScrollPane scroll = UiLayout.tableScroll(table);
 
         JLabel historyTitle = new JLabel("Booking History");
         historyTitle.setFont(Theme.fontMedium(14));
@@ -55,7 +54,7 @@ public class CustomerDetailDialog extends JDialog {
 
         root.add(info, BorderLayout.NORTH);
 
-        JPanel center = new JPanel(new BorderLayout(0, 8));
+        JPanel center = new JPanel(new BorderLayout(0, UiLayout.SPACE_SM));
         center.setOpaque(false);
         center.add(historyTitle, BorderLayout.NORTH);
         center.add(scroll, BorderLayout.CENTER);

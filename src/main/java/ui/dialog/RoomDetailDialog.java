@@ -2,6 +2,7 @@ package ui.dialog;
 
 import components.StatusBadge;
 import components.Theme;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -9,7 +10,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import model.Room;
 import utils.CurrencyUtil;
 import utils.ImageUtil;
@@ -18,9 +18,9 @@ public class RoomDetailDialog extends JDialog {
 
     public RoomDetailDialog(java.awt.Window owner, Room room) {
         super(owner, "Room " + room.getRoomNumber(), ModalityType.APPLICATION_MODAL);
-        JPanel root = new JPanel(new BorderLayout(16, 16));
+        JPanel root = new JPanel(new BorderLayout(UiLayout.SPACE_MD, UiLayout.SPACE_MD));
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(24, 28, 24, 28));
+        root.setBorder(UiLayout.dialogBorder());
 
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.setOpaque(false);
@@ -29,7 +29,7 @@ public class RoomDetailDialog extends JDialog {
         imageLabel.setHorizontalAlignment(JLabel.CENTER);
         imagePanel.add(imageLabel, BorderLayout.CENTER);
 
-        JPanel details = new JPanel(new GridLayout(0, 2, 12, 8));
+        JPanel details = new JPanel(new GridLayout(0, 2, UiLayout.SPACE_MD, UiLayout.SPACE_SM));
         details.setOpaque(false);
         addDetail(details, "Room Number", room.getRoomNumber());
         addDetail(details, "Type", room.getRoomType().getLabel());

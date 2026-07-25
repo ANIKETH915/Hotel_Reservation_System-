@@ -6,14 +6,15 @@ import components.EmptyStatePanel;
 import components.ModernTable;
 import components.PageHeader;
 import components.StyledButton;
+import components.TableCard;
 import components.TableEmptyOverlay;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import model.Booking;
@@ -41,12 +42,13 @@ public class BookingPanel extends JPanel implements MainFrame.RefreshablePanel {
     };
     private ModernTable table;
     private TableEmptyOverlay overlay;
+    private TableCard tableCard;
     private List<Booking> bookings = List.of();
     private PageHeader pageHeader;
 
     public BookingPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        setLayout(new BorderLayout(0, 16));
+        setLayout(new BorderLayout(0, UiLayout.SPACE_MD));
         setBackground(Theme.bgPrimary());
         buildUi();
     }
@@ -54,11 +56,13 @@ public class BookingPanel extends JPanel implements MainFrame.RefreshablePanel {
     private void buildUi() {
         pageHeader = new PageHeader("Front Desk Bookings", "Reservations, arrivals, departures, and billing");
 
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-        toolbar.setOpaque(false);
-
         StyledButton newBtn = new StyledButton("New Booking");
         newBtn.setToolTipText("Create a reservation");
+        pageHeader.addAction(newBtn);
+
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, UiLayout.SPACE_SM, UiLayout.SPACE_XS));
+        toolbar.setOpaque(false);
+
         StyledButton checkInBtn = new StyledButton("Check-in", StyledButton.Style.SECONDARY);
         StyledButton checkOutBtn = new StyledButton("Check-out", StyledButton.Style.SECONDARY);
         StyledButton cancelBtn = new StyledButton("Cancel", StyledButton.Style.DANGER);
@@ -66,29 +70,28 @@ public class BookingPanel extends JPanel implements MainFrame.RefreshablePanel {
         StyledButton receiptBtn = new StyledButton("Receipt", StyledButton.Style.GHOST);
         StyledButton invoiceBtn = new StyledButton("Invoice", StyledButton.Style.GHOST);
 
-        toolbar.add(newBtn);
         toolbar.add(checkInBtn);
         toolbar.add(checkOutBtn);
         toolbar.add(cancelBtn);
         toolbar.add(payBtn);
         toolbar.add(receiptBtn);
         toolbar.add(invoiceBtn);
-        pageHeader.addAction(newBtn);
 
         table = new ModernTable(tableModel);
         EmptyStatePanel empty = new EmptyStatePanel("No bookings yet",
                 "Create a booking once rooms and guests are in the system.");
         empty.setIconKey("bookings");
         empty.setAction("New Booking", () -> new BookingFormDialog(mainFrame, this::afterMutation).setVisible(true));
-        overlay = new TableEmptyOverlay(new JScrollPane(table), empty);
+        overlay = new TableEmptyOverlay(UiLayout.tableScroll(table), empty);
+        tableCard = new TableCard(overlay);
 
-        JPanel north = new JPanel(new BorderLayout(0, 12));
+        JPanel north = new JPanel(new BorderLayout(0, UiLayout.SPACE_SM));
         north.setOpaque(false);
         north.add(pageHeader, BorderLayout.NORTH);
         north.add(toolbar, BorderLayout.SOUTH);
 
         add(north, BorderLayout.NORTH);
-        add(overlay, BorderLayout.CENTER);
+        add(tableCard, BorderLayout.CENTER);
 
         newBtn.addActionListener(e ->
                 new BookingFormDialog(mainFrame, this::afterMutation).setVisible(true));
@@ -260,6 +263,8 @@ public class BookingPanel extends JPanel implements MainFrame.RefreshablePanel {
         setBackground(Theme.bgPrimary());
         pageHeader.applyTheme();
         table.applyTheme();
+        overlay.applyTheme();
+        tableCard.applyTheme();
         repaint();
     }
 }

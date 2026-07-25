@@ -5,8 +5,8 @@ import components.ModernTextField;
 import components.StyledButton;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
@@ -14,11 +14,12 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
+import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import model.Admin;
@@ -35,21 +36,14 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         setTitle("Grand Azure — Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(440, 520);
+        setSize(460, 560);
         setMinimumSize(new Dimension(400, 480));
         setLocationRelativeTo(null);
 
-        JPanel root = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Theme.bgPrimary());
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-            }
-        };
-        root.setBorder(new EmptyBorder(24, 24, 24, 24));
+        UiLayout.ViewportWidthPanel content = new UiLayout.ViewportWidthPanel();
+        content.setLayout(new BorderLayout(0, UiLayout.SPACE_LG));
+        content.setOpaque(false);
+        content.setBorder(new EmptyBorder(UiLayout.SPACE_LG, UiLayout.SPACE_LG, UiLayout.SPACE_LG, UiLayout.SPACE_LG));
 
         JPanel header = new JPanel();
         header.setOpaque(false);
@@ -72,6 +66,11 @@ public class LoginFrame extends JFrame {
             public Dimension getPreferredSize() {
                 return new Dimension(64, 64);
             }
+
+            @Override
+            public Dimension getMaximumSize() {
+                return getPreferredSize();
+            }
         };
         logo.setOpaque(false);
         logo.setAlignmentX(CENTER_ALIGNMENT);
@@ -87,33 +86,33 @@ public class LoginFrame extends JFrame {
         subtitle.setAlignmentX(CENTER_ALIGNMENT);
 
         header.add(logo);
-        header.add(javax.swing.Box.createVerticalStrut(12));
+        header.add(Box.createVerticalStrut(UiLayout.SPACE_MD));
         header.add(title);
-        header.add(javax.swing.Box.createVerticalStrut(4));
+        header.add(Box.createVerticalStrut(UiLayout.SPACE_XS));
         header.add(subtitle);
 
         CardPanel formCard = new CardPanel(new GridBagLayout());
-        formCard.setBorder(new EmptyBorder(24, 28, 24, 28));
+        formCard.setBorder(new EmptyBorder(UiLayout.SPACE_LG, UiLayout.SPACE_XL - 4, UiLayout.SPACE_LG, UiLayout.SPACE_XL - 4));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-        gbc.insets = new java.awt.Insets(0, 0, 6, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_SM - 2, 0);
         formCard.add(label("Username"), gbc);
 
         gbc.gridy = 1;
-        gbc.insets = new java.awt.Insets(0, 0, 16, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         usernameField.setPreferredSize(new Dimension(0, 40));
         formCard.add(usernameField, gbc);
 
         gbc.gridy = 2;
-        gbc.insets = new java.awt.Insets(0, 0, 6, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_SM - 2, 0);
         formCard.add(label("Password"), gbc);
 
         gbc.gridy = 3;
-        gbc.insets = new java.awt.Insets(0, 0, 12, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD - 4, 0);
         passwordField.setPreferredSize(new Dimension(0, 40));
         formCard.add(passwordField, gbc);
 
@@ -121,11 +120,11 @@ public class LoginFrame extends JFrame {
         rememberCheck.setFont(Theme.fontRegular(12));
         rememberCheck.setForeground(Theme.textSecondary());
         gbc.gridy = 4;
-        gbc.insets = new java.awt.Insets(0, 0, 16, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         formCard.add(rememberCheck, gbc);
 
         gbc.gridy = 5;
-        gbc.insets = new java.awt.Insets(0, 0, 8, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_SM, 0);
         loginButton.setPreferredSize(new Dimension(0, 42));
         formCard.add(loginButton, gbc);
 
@@ -138,8 +137,21 @@ public class LoginFrame extends JFrame {
         gbc.insets = new java.awt.Insets(0, 0, 0, 0);
         formCard.add(forgotPanel, gbc);
 
-        root.add(header, BorderLayout.NORTH);
-        root.add(formCard, BorderLayout.CENTER);
+        content.add(header, BorderLayout.NORTH);
+        content.add(formCard, BorderLayout.CENTER);
+
+        JPanel root = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Theme.bgPrimary());
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+            }
+        };
+        JScrollPane scroll = UiLayout.pageScroll(content);
+        root.add(scroll, BorderLayout.CENTER);
         setContentPane(root);
 
         loginButton.addActionListener(e -> doLogin());

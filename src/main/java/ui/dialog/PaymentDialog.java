@@ -5,6 +5,7 @@ import components.StyledButton;
 import components.StyledComboBox;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -14,7 +15,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
-import javax.swing.border.EmptyBorder;
 import model.Booking;
 import model.PaymentMethod;
 import service.PaymentService;
@@ -34,9 +34,9 @@ public class PaymentDialog extends JDialog {
         this.booking = booking;
         this.onComplete = onComplete;
 
-        JPanel root = new JPanel(new BorderLayout(0, 16));
+        JPanel root = new JPanel(new BorderLayout(0, UiLayout.SPACE_MD));
         root.setBackground(Theme.bgPrimary());
-        root.setBorder(new EmptyBorder(24, 28, 24, 28));
+        root.setBorder(UiLayout.dialogBorder());
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -49,14 +49,14 @@ public class PaymentDialog extends JDialog {
         title.setFont(Theme.fontMedium(13));
         title.setForeground(Theme.textPrimary());
         gbc.gridy = 0;
-        gbc.insets = new java.awt.Insets(0, 0, 4, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_XS, 0);
         form.add(title, gbc);
 
         JLabel total = new JLabel("Total due: " + CurrencyUtil.format(booking.getTotalAmount()));
         total.setFont(Theme.fontRegular(12));
         total.setForeground(Theme.textSecondary());
         gbc.gridy = 1;
-        gbc.insets = new java.awt.Insets(0, 0, 16, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         form.add(total, gbc);
 
         addField(form, gbc, 2, "Payment Method", methodCombo);
@@ -67,7 +67,7 @@ public class PaymentDialog extends JDialog {
         StyledButton payBtn = new StyledButton("Process Payment", StyledButton.Style.GOLD);
         StyledButton cancelBtn = new StyledButton("Cancel", StyledButton.Style.SECONDARY);
         cancelBtn.addActionListener(e -> dispose());
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiLayout.SPACE_SM, 0));
         buttons.setOpaque(false);
         buttons.add(cancelBtn);
         buttons.add(payBtn);
@@ -84,14 +84,14 @@ public class PaymentDialog extends JDialog {
 
     private void addField(JPanel form, GridBagConstraints gbc, int row, String label, java.awt.Component field) {
         gbc.gridy = row;
-        gbc.insets = new java.awt.Insets(0, 0, 4, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_XS, 0);
         JLabel lbl = new JLabel(label);
         lbl.setFont(Theme.fontMedium(12));
         lbl.setForeground(Theme.textSecondary());
         form.add(lbl, gbc);
 
         gbc.gridy = row + 1;
-        gbc.insets = new java.awt.Insets(0, 0, 12, 0);
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         form.add(field, gbc);
     }
 

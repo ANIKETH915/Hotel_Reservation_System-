@@ -6,15 +6,15 @@ import components.EmptyStatePanel;
 import components.ModernTable;
 import components.PageHeader;
 import components.StyledButton;
+import components.TableCard;
 import components.TableEmptyOverlay;
 import components.Theme;
 import components.Toast;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.util.List;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import model.Customer;
@@ -37,12 +37,13 @@ public class CustomerPanel extends JPanel implements MainFrame.RefreshablePanel 
     };
     private ModernTable table;
     private TableEmptyOverlay tableOverlay;
+    private TableCard tableCard;
     private PageHeader pageHeader;
     private List<Customer> customers = List.of();
 
     public CustomerPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
-        setLayout(new BorderLayout(0, 16));
+        setLayout(new BorderLayout(0, UiLayout.SPACE_MD));
         setBackground(Theme.bgPrimary());
         buildUi();
     }
@@ -50,7 +51,7 @@ public class CustomerPanel extends JPanel implements MainFrame.RefreshablePanel 
     private void buildUi() {
         pageHeader = new PageHeader("Guests", "Profiles, contact details, and reservation history");
 
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, UiLayout.SPACE_SM, UiLayout.SPACE_XS));
         toolbar.setOpaque(false);
 
         StyledButton addBtn = new StyledButton("Add Customer");
@@ -64,8 +65,6 @@ public class CustomerPanel extends JPanel implements MainFrame.RefreshablePanel 
         pageHeader.addAction(addBtn);
 
         table = new ModernTable(tableModel);
-        JScrollPane scroll = new JScrollPane(table);
-        scroll.setBorder(javax.swing.BorderFactory.createLineBorder(Theme.border()));
         EmptyStatePanel emptyState = new EmptyStatePanel(
                 "No guest profiles yet",
                 "Register a guest before creating their first reservation."
@@ -73,15 +72,16 @@ public class CustomerPanel extends JPanel implements MainFrame.RefreshablePanel 
         emptyState.setIconKey("customers");
         emptyState.setAction("Add Guest",
                 () -> new CustomerFormDialog(mainFrame, null, this::afterMutation).setVisible(true));
-        tableOverlay = new TableEmptyOverlay(scroll, emptyState);
+        tableOverlay = new TableEmptyOverlay(UiLayout.tableScroll(table), emptyState);
+        tableCard = new TableCard(tableOverlay);
 
-        JPanel north = new JPanel(new BorderLayout(0, 12));
+        JPanel north = new JPanel(new BorderLayout(0, UiLayout.SPACE_SM));
         north.setOpaque(false);
         north.add(pageHeader, BorderLayout.NORTH);
         north.add(toolbar, BorderLayout.SOUTH);
 
         add(north, BorderLayout.NORTH);
-        add(tableOverlay, BorderLayout.CENTER);
+        add(tableCard, BorderLayout.CENTER);
 
         addBtn.addActionListener(e -> new CustomerFormDialog(mainFrame, null, this::afterMutation).setVisible(true));
         editBtn.addActionListener(e -> editSelected());
@@ -191,6 +191,8 @@ public class CustomerPanel extends JPanel implements MainFrame.RefreshablePanel 
         setBackground(Theme.bgPrimary());
         pageHeader.applyTheme();
         table.applyTheme();
+        tableOverlay.applyTheme();
+        tableCard.applyTheme();
         repaint();
     }
 }

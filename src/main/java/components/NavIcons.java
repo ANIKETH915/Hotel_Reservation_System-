@@ -30,6 +30,12 @@ public final class NavIcons {
             case "settings" -> paintGear(g2, x, y, size);
             case "about" -> paintInfo(g2, x, y, size);
             case "logout" -> paintLogout(g2, x, y, size);
+            case "export" -> paintExport(g2, x, y, size);
+            case "backup" -> paintBackup(g2, x, y, size);
+            case "revenue", "daily" -> paintRevenue(g2, x, y, size);
+            case "monthly" -> paintMonthly(g2, x, y, size);
+            case "summary" -> paintSummary(g2, x, y, size);
+            case "utilization" -> paintUtilization(g2, x, y, size);
             default -> paintEmpty(g2, x, y, size);
         }
         g2.dispose();
@@ -107,5 +113,45 @@ public final class NavIcons {
     private static void paintEmpty(Graphics2D g, int x, int y, int s) {
         g.draw(new RoundRectangle2D.Float(x + 2, y + 2, s - 4, s - 4, 6, 6));
         g.draw(new Line2D.Float(x + s * 0.3f, y + s * 0.5f, x + s * 0.7f, y + s * 0.5f));
+    }
+
+    private static void paintExport(Graphics2D g, int x, int y, int s) {
+        g.draw(new RoundRectangle2D.Float(x + 2, y + s * 0.45f, s - 4, s * 0.42f, 4, 4));
+        g.draw(new Line2D.Float(x + s * 0.5f, y + 2, x + s * 0.5f, y + s * 0.55f));
+        g.draw(new Line2D.Float(x + s * 0.3f, y + s * 0.28f, x + s * 0.5f, y + s * 0.5f));
+        g.draw(new Line2D.Float(x + s * 0.7f, y + s * 0.28f, x + s * 0.5f, y + s * 0.5f));
+    }
+
+    private static void paintBackup(Graphics2D g, int x, int y, int s) {
+        g.draw(new Ellipse2D.Float(x + 3, y + 2, s - 6, s * 0.28f));
+        g.draw(new Line2D.Float(x + 3, y + s * 0.16f, x + 3, y + s * 0.7f));
+        g.draw(new Line2D.Float(x + s - 3, y + s * 0.16f, x + s - 3, y + s * 0.7f));
+        g.draw(new Ellipse2D.Float(x + 3, y + s * 0.55f, s - 6, s * 0.28f));
+        g.draw(new Ellipse2D.Float(x + 3, y + s * 0.32f, s - 6, s * 0.28f));
+    }
+
+    private static void paintRevenue(Graphics2D g, int x, int y, int s) {
+        g.draw(new Ellipse2D.Float(x + 2, y + 2, s - 4, s - 4));
+        g.draw(new Line2D.Float(x + s * 0.5f, y + s * 0.28f, x + s * 0.5f, y + s * 0.72f));
+        g.draw(new Line2D.Float(x + s * 0.35f, y + s * 0.38f, x + s * 0.65f, y + s * 0.38f));
+        g.draw(new Line2D.Float(x + s * 0.35f, y + s * 0.55f, x + s * 0.65f, y + s * 0.55f));
+    }
+
+    private static void paintMonthly(Graphics2D g, int x, int y, int s) {
+        paintCalendar(g, x, y, s);
+        g.fill(new Rectangle2D.Float(x + s * 0.28f, y + s * 0.52f, s * 0.16f, s * 0.16f));
+        g.fill(new Rectangle2D.Float(x + s * 0.52f, y + s * 0.52f, s * 0.16f, s * 0.16f));
+    }
+
+    private static void paintSummary(Graphics2D g, int x, int y, int s) {
+        g.draw(new RoundRectangle2D.Float(x + 2, y + 2, s - 4, s - 4, 4, 4));
+        g.draw(new Line2D.Float(x + s * 0.25f, y + s * 0.32f, x + s * 0.75f, y + s * 0.32f));
+        g.draw(new Line2D.Float(x + s * 0.25f, y + s * 0.5f, x + s * 0.75f, y + s * 0.5f));
+        g.draw(new Line2D.Float(x + s * 0.25f, y + s * 0.68f, x + s * 0.6f, y + s * 0.68f));
+    }
+
+    private static void paintUtilization(Graphics2D g, int x, int y, int s) {
+        g.draw(new Ellipse2D.Float(x + 2, y + 2, s - 4, s - 4));
+        g.fillArc(x + 4, y + 4, s - 8, s - 8, 90, -200);
     }
 }

@@ -7,6 +7,7 @@ import components.LoadingOverlay;
 import components.Sidebar;
 import components.Theme;
 import components.ThemeManager;
+import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
@@ -15,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -63,7 +63,8 @@ public class MainFrame extends JFrame {
         loadingOverlay = new LoadingOverlay();
 
         contentPanel.setOpaque(false);
-        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        contentPanel.setBorder(new EmptyBorder(
+                UiLayout.PAGE_INSET, UiLayout.PAGE_INSET, UiLayout.PAGE_INSET, UiLayout.PAGE_INSET));
 
         registerPanel("dashboard", new DashboardPanel(this));
         registerPanel("rooms", new RoomPanel(this));
@@ -158,15 +159,7 @@ public class MainFrame extends JFrame {
     }
 
     private void installScrollSpeed(java.awt.Container root) {
-        for (java.awt.Component c : root.getComponents()) {
-            if (c instanceof JScrollPane sp) {
-                sp.getVerticalScrollBar().setUnitIncrement(24);
-                sp.getHorizontalScrollBar().setUnitIncrement(24);
-                sp.getViewport().setScrollMode(javax.swing.JViewport.BLIT_SCROLL_MODE);
-            } else if (c instanceof java.awt.Container child) {
-                installScrollSpeed(child);
-            }
-        }
+        UiLayout.installScrollDefaults(root);
     }
 
     public void navigate(String section) {
