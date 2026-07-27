@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import model.Room;
@@ -51,7 +52,7 @@ public class RoomFormDialog extends JDialog {
             statusCombo.setSelectedItem(RoomStatus.AVAILABLE);
         }
         pack();
-        setMinimumSize(new Dimension(460, 500));
+        setMinimumSize(new Dimension(460, getPreferredSize().height));
         setLocationRelativeTo(owner);
     }
 
@@ -65,49 +66,69 @@ public class RoomFormDialog extends JDialog {
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
-        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
 
-        int row = 0;
-        addField(form, gbc, row++, "Room Number", numberField);
-        addField(form, gbc, row++, "Room Type", typeCombo);
-        addField(form, gbc, row++, "Floor", floorField);
-        addField(form, gbc, row++, "Price per Night", priceField);
-        addField(form, gbc, row++, "Capacity", capacityField);
-        addField(form, gbc, row++, "Status", statusCombo);
+        int gridy = 0;
+        addField(form, gbc, gridy, "Room Number", numberField);
+        gridy += 2;
+        addField(form, gbc, gridy, "Room Type", typeCombo);
+        gridy += 2;
+        addField(form, gbc, gridy, "Floor", floorField);
+        gridy += 2;
+        addField(form, gbc, gridy, "Price per Night", priceField);
+        gridy += 2;
+        addField(form, gbc, gridy, "Capacity", capacityField);
+        gridy += 2;
+        addField(form, gbc, gridy, "Status", statusCombo);
+        gridy += 2;
+
+        // Image label
+        gbc.gridy = gridy++;
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_XS, 0);
+        JLabel lblImage = new JLabel("Image");
+        lblImage.setFont(Theme.fontMedium(12));
+        lblImage.setForeground(Theme.textSecondary());
+        form.add(lblImage, gbc);
+
+        // Sub-panel for image label and browse button side-by-side
+        JPanel imagePanel = new JPanel(new BorderLayout(UiLayout.SPACE_SM, 0));
+        imagePanel.setOpaque(false);
 
         imageLabel.setFont(Theme.fontRegular(12));
         imageLabel.setForeground(Theme.textSecondary());
-        addField(form, gbc, row++, "Image", imageLabel);
+        imagePanel.add(imageLabel, BorderLayout.CENTER);
 
         StyledButton browseBtn = new StyledButton("Browse Image", StyledButton.Style.SECONDARY);
         browseBtn.addActionListener(e -> chooseImage());
-        gbc.gridy = row++;
-        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_SM, 0);
-        form.add(browseBtn, gbc);
+        imagePanel.add(browseBtn, BorderLayout.EAST);
 
+        gbc.gridy = gridy++;
+        gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
+        form.add(imagePanel, gbc);
+
+        // Buttons section
         StyledButton saveBtn = new StyledButton(existing == null ? "Add Room" : "Save Changes");
         saveBtn.setPreferredSize(new Dimension(0, 40));
-        gbc.gridy = row;
-        gbc.insets = new java.awt.Insets(UiLayout.SPACE_SM, 0, 0, 0);
-        form.add(saveBtn, gbc);
         saveBtn.addActionListener(e -> save());
+
+        gbc.gridy = gridy++;
+        gbc.insets = new java.awt.Insets(UiLayout.SPACE_MD, 0, 0, 0); // 16px space matching design specs
+        form.add(saveBtn, gbc);
 
         root.add(form, BorderLayout.CENTER);
         setContentPane(root);
     }
 
-    private void addField(JPanel form, GridBagConstraints gbc, int row, String label, java.awt.Component field) {
-        gbc.gridy = row * 2;
+    private void addField(JPanel form, GridBagConstraints gbc, int gridy, String label, java.awt.Component field) {
+        gbc.gridy = gridy;
         gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_XS, 0);
         JLabel lbl = new JLabel(label);
         lbl.setFont(Theme.fontMedium(12));
         lbl.setForeground(Theme.textSecondary());
         form.add(lbl, gbc);
 
-        gbc.gridy = row * 2 + 1;
+        gbc.gridy = gridy + 1;
         gbc.insets = new java.awt.Insets(0, 0, UiLayout.SPACE_MD, 0);
         form.add(field, gbc);
     }
@@ -137,13 +158,69 @@ public class RoomFormDialog extends JDialog {
     }
 
     private void save() {
+        String roomNumber = numberField.getText().trim();
+        if (roomNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Room Number must not be empty.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int floor;
+        try {
+            floor = Integer.parseInt(floorField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Floor must be a valid numeric integer.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        BigDecimal price;
+        try {
+            price = new BigDecimal(priceField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Price must be a valid numeric decimal.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (price.compareTo(BigDecimal.ZERO) <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Price must be greater than zero.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int capacity;
+        try {
+            capacity = Integer.parseInt(capacityField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Please enter a valid capacity.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (capacity <= 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Capacity must be greater than zero.",
+                    "Invalid Input",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         try {
             Room room = existing != null ? existing : new Room();
-            room.setRoomNumber(numberField.getText().trim());
+            room.setRoomNumber(roomNumber);
             room.setRoomType((RoomType) typeCombo.getSelectedItem());
-            room.setFloor(Integer.parseInt(floorField.getText().trim()));
-            room.setPrice(new BigDecimal(priceField.getText().trim()));
-            room.setCapacity(Integer.parseInt(capacityField.getText().trim()));
+            room.setFloor(floor);
+            room.setPrice(price);
+            room.setCapacity(capacity);
             room.setStatus((RoomStatus) statusCombo.getSelectedItem());
 
             Path pending = (Path) imageLabel.getClientProperty("pendingPath");
@@ -183,8 +260,8 @@ public class RoomFormDialog extends JDialog {
                     }
                 }
             }.execute();
-        } catch (NumberFormatException ex) {
-            Toast.error(this, "Invalid numeric value");
+        } catch (Exception ex) {
+            Toast.error(this, "An error occurred: " + ex.getMessage());
         }
     }
 }
