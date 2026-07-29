@@ -40,6 +40,7 @@ public class DashboardService {
                     case BOOKED -> stats.setOccupiedRooms(count);
                     case RESERVED -> stats.setReservedRooms(count);
                     case MAINTENANCE -> stats.setMaintenanceRooms(count);
+                    case CLEANING -> stats.setCleaningRooms(count);
                     default -> { }
                 }
             }

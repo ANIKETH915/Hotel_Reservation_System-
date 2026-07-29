@@ -23,6 +23,13 @@ public class TableCard extends CardPanel {
         add(scroll, BorderLayout.CENTER);
     }
 
+    public TableCard(javax.swing.JComponent component) {
+        super(new BorderLayout());
+        setBorder(new EmptyBorder(2, 2, 6, 2));
+        setArc(14);
+        add(component, BorderLayout.CENTER);
+    }
+
     public TableCard(String title, TableEmptyOverlay overlay) {
         super(new BorderLayout(0, UiLayout.SPACE_SM));
         setBorder(new EmptyBorder(UiLayout.SPACE_MD, UiLayout.SPACE_MD, UiLayout.SPACE_MD + 2, UiLayout.SPACE_MD));

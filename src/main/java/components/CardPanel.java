@@ -29,6 +29,10 @@ public class CardPanel extends JPanel {
         this.arc = arc;
     }
 
+    public int getArc() {
+        return arc;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();

@@ -59,6 +59,7 @@ public class MainFrame extends JFrame {
         getRootPane().setDoubleBuffered(true);
 
         headerBar = new HeaderBar();
+        headerBar.setMainFrame(this);
         sidebar = new Sidebar(this::navigate);
         loadingOverlay = new LoadingOverlay();
 

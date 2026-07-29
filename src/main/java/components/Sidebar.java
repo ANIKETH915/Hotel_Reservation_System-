@@ -15,6 +15,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 import service.SettingsService;
 
@@ -189,6 +190,10 @@ public class Sidebar extends JPanel {
         private boolean active;
         private boolean hover;
 
+        private double activeProgress = 0.0;
+        private double hoverProgress = 0.0;
+        private final Timer transitionTimer;
+
         NavItemPanel(String label, String iconKey) {
             this.label = label;
             this.iconKey = iconKey;
@@ -197,24 +202,58 @@ public class Sidebar extends JPanel {
             setPreferredSize(new Dimension(240, 46));
             setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
             setBorder(new EmptyBorder(0, 12, 0, 12));
+
+            transitionTimer = new Timer(15, e -> {
+                boolean changed = false;
+                if (active) {
+                    if (activeProgress < 1.0) {
+                        activeProgress = Math.min(1.0, activeProgress + 0.15);
+                        changed = true;
+                    }
+                } else {
+                    if (activeProgress > 0.0) {
+                        activeProgress = Math.max(0.0, activeProgress - 0.15);
+                        changed = true;
+                    }
+                }
+
+                if (hover) {
+                    if (hoverProgress < 1.0) {
+                        hoverProgress = Math.min(1.0, hoverProgress + 0.15);
+                        changed = true;
+                    }
+                } else {
+                    if (hoverProgress > 0.0) {
+                        hoverProgress = Math.max(0.0, hoverProgress - 0.15);
+                        changed = true;
+                    }
+                }
+
+                if (changed) {
+                    repaint();
+                } else {
+                    ((javax.swing.Timer)e.getSource()).stop();
+                }
+            });
+
             addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseEntered(java.awt.event.MouseEvent e) {
                     hover = true;
-                    repaint();
+                    if (!transitionTimer.isRunning()) transitionTimer.start();
                 }
 
                 @Override
                 public void mouseExited(java.awt.event.MouseEvent e) {
                     hover = false;
-                    repaint();
+                    if (!transitionTimer.isRunning()) transitionTimer.start();
                 }
             });
         }
 
         void setActive(boolean active) {
             this.active = active;
-            repaint();
+            if (!transitionTimer.isRunning()) transitionTimer.start();
         }
 
         @Override
@@ -222,22 +261,61 @@ public class Sidebar extends JPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            if (active) {
-                g2.setColor(new Color(Theme.ROYAL_BLUE.getRed(), Theme.ROYAL_BLUE.getGreen(),
-                        Theme.ROYAL_BLUE.getBlue(), 55));
-                g2.fillRoundRect(8, 4, getWidth() - 16, getHeight() - 8, 10, 10);
+            int w = getWidth();
+            int h = getHeight();
+
+            // 1. Draw glowing gradient background wash
+            if (activeProgress > 0) {
+                // Navy blue background wash
+                Color wash = new Color(Theme.ROYAL_BLUE.getRed(), Theme.ROYAL_BLUE.getGreen(), Theme.ROYAL_BLUE.getBlue(), (int) (55 * activeProgress));
+                g2.setColor(wash);
+                g2.fillRoundRect(8, 4, w - 16, h - 8, 10, 10);
+                
+                // Gold outer glow border
+                Color glow = new Color(Theme.GOLD.getRed(), Theme.GOLD.getGreen(), Theme.GOLD.getBlue(), (int) (60 * activeProgress));
+                g2.setColor(glow);
+                g2.drawRoundRect(8, 4, w - 16, h - 8, 10, 10);
+
+                // Gold vertical indicator bar (animates height from 0 to full)
                 g2.setColor(Theme.GOLD);
-                g2.fillRoundRect(0, 10, 4, getHeight() - 20, 2, 2);
-            } else if (hover) {
-                g2.setColor(new Color(255, 255, 255, 14));
-                g2.fillRoundRect(8, 4, getWidth() - 16, getHeight() - 8, 10, 10);
+                int barHeight = (int) Math.round((h - 20) * activeProgress);
+                g2.fillRoundRect(3, 10 + (h - 20 - barHeight) / 2, 4, barHeight, 2, 2);
+            } else if (hoverProgress > 0) {
+                // Hover transparent grey background wash
+                Color hoverWash = new Color(255, 255, 255, (int) (16 * hoverProgress));
+                g2.setColor(hoverWash);
+                g2.fillRoundRect(8, 4, w - 16, h - 8, 10, 10);
             }
 
-            Color iconColor = active ? Theme.GOLD : new Color(0x94, 0xA3, 0xB8);
+            // 2. Icon color transition (grey -> gold)
+            Color iconColor;
+            if (activeProgress > 0) {
+                // Mix gray and gold based on progress
+                int r = (int) ((0x94 * (1.0 - activeProgress)) + (Theme.GOLD.getRed() * activeProgress));
+                int gr = (int) ((0xA3 * (1.0 - activeProgress)) + (Theme.GOLD.getGreen() * activeProgress));
+                int b = (int) ((0xB8 * (1.0 - activeProgress)) + (Theme.GOLD.getBlue() * activeProgress));
+                iconColor = new Color(r, gr, b);
+            } else {
+                iconColor = new Color(0x94, 0xA3, 0xB8);
+            }
+
+            // Paint Nav icon
             NavIcons.paint(g2, iconKey, 22, 13, 20, iconColor);
 
-            g2.setColor(active ? Color.WHITE : new Color(0xCB, 0xD5, 0xE1));
-            g2.setFont(active ? Theme.fontMedium(13) : Theme.fontRegular(13));
+            // 3. Text color transition (grey -> white)
+            Color textColor;
+            if (activeProgress > 0) {
+                int r = (int) ((0xCB * (1.0 - activeProgress)) + (255 * activeProgress));
+                int gr = (int) ((0xD5 * (1.0 - activeProgress)) + (255 * activeProgress));
+                int b = (int) ((0xE1 * (1.0 - activeProgress)) + (255 * activeProgress));
+                textColor = new Color(r, gr, b);
+                g2.setFont(Theme.fontMedium(13));
+            } else {
+                textColor = new Color(0xCB, 0xD5, 0xE1);
+                g2.setFont(Theme.fontRegular(13));
+            }
+
+            g2.setColor(textColor);
             g2.drawString(label, 52, 28);
             g2.dispose();
         }

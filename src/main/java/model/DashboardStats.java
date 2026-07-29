@@ -120,4 +120,14 @@ public class DashboardStats {
     public void setMaintenanceRooms(int maintenanceRooms) {
         this.maintenanceRooms = maintenanceRooms;
     }
+
+    private int cleaningRooms;
+
+    public int getCleaningRooms() {
+        return cleaningRooms;
+    }
+
+    public void setCleaningRooms(int cleaningRooms) {
+        this.cleaningRooms = cleaningRooms;
+    }
 }
