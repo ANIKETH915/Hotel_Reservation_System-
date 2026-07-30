@@ -90,19 +90,19 @@ public class PaymentDao {
     }
 
     public BigDecimal sumToday() throws SQLException {
-        String sql = "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE DATE(payment_date) = CURDATE()";
+        String sql = "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE date(payment_date) = date('now', 'localtime')";
         return sumQuery(sql);
     }
 
     public BigDecimal sumThisMonth() throws SQLException {
         String sql = "SELECT COALESCE(SUM(amount), 0) FROM payments "
-                + "WHERE YEAR(payment_date) = YEAR(CURDATE()) AND MONTH(payment_date) = MONTH(CURDATE())";
+                + "WHERE strftime('%Y-%m', payment_date) = strftime('%Y-%m', 'now', 'localtime')";
         return sumQuery(sql);
     }
 
     public BigDecimal sumBetween(LocalDate start, LocalDate end) throws SQLException {
         String sql = "SELECT COALESCE(SUM(amount), 0) FROM payments "
-                + "WHERE DATE(payment_date) >= ? AND DATE(payment_date) <= ?";
+                + "WHERE date(payment_date) >= ? AND date(payment_date) <= ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDate(1, java.sql.Date.valueOf(start));

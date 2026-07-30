@@ -32,7 +32,7 @@ public class AdminDao {
         String sql = "SELECT admin_id, username, password_hash, salt, full_name, security_answer_hash, "
                 + "remember_token_hash, remember_token_expires, is_active, last_login "
                 + "FROM admins WHERE remember_token_hash = ? "
-                + "AND remember_token_expires IS NOT NULL AND remember_token_expires > NOW()";
+                + "AND remember_token_expires IS NOT NULL AND remember_token_expires > datetime('now', 'localtime')";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tokenHash);
@@ -46,7 +46,7 @@ public class AdminDao {
     }
 
     public void updateLastLogin(int adminId) throws SQLException {
-        String sql = "UPDATE admins SET last_login = NOW() WHERE admin_id = ?";
+        String sql = "UPDATE admins SET last_login = datetime('now', 'localtime') WHERE admin_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, adminId);
@@ -91,6 +91,31 @@ public class AdminDao {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, securityAnswerHash);
             ps.setInt(2, adminId);
+            ps.executeUpdate();
+        }
+    }
+
+    public boolean hasAdmins() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM admins";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        }
+        return false;
+    }
+
+    public void register(String username, String passwordHash, String salt, String fullName, String securityAnswerHash) throws SQLException {
+        String sql = "INSERT INTO admins (username, password_hash, salt, full_name, security_answer_hash) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setString(2, passwordHash);
+            ps.setString(3, salt);
+            ps.setString(4, fullName);
+            ps.setString(5, securityAnswerHash);
             ps.executeUpdate();
         }
     }

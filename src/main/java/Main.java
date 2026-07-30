@@ -51,14 +51,12 @@ public class Main {
                             }
                         } catch (Exception e) {
                             splash.dispose();
-                            e.printStackTrace();
                             ConfirmDialog.alert(null, "Startup Failed",
                                     e.getCause() == null ? e.getMessage() : e.getCause().getMessage());
                         }
                     }
                 }.execute();
             } catch (Exception e) {
-                e.printStackTrace();
                 ConfirmDialog.alert(null, "Startup Failed",
                         e.getMessage() == null ? "Unable to start application." : e.getMessage());
             }

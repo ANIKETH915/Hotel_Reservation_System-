@@ -3,7 +3,6 @@ package ui;
 import components.CardPanel;
 import components.EmptyStatePanel;
 import components.IconActionButton;
-import components.MetricCard;
 import components.ModernTable;
 import components.PageHeader;
 import components.Theme;
@@ -11,12 +10,20 @@ import components.Toast;
 import components.UiLayout;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -24,11 +31,13 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
@@ -42,13 +51,9 @@ import service.ImportExportService;
 import service.ReportDataService;
 import utils.CurrencyUtil;
 
-/**
- * Analytics dashboard for reports and exports.
- * UI-only redesign — report/export/backup service calls are unchanged.
- */
 public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
 
-    private static final int OUTER = 4;          // with MainFrame inset ≈ 24
+    private static final int OUTER = 4;
     private static final int CARD_GAP = 16;
     private static final int BTN_GAP = 12;
     private static final int SECTION_GAP = 20;
@@ -81,6 +86,9 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
 
     private final List<IconActionButton> reportActionButtons = new ArrayList<>();
     private IconActionButton activeReportButton;
+
+    // Hover row tracking
+    private int hoveredRow = -1;
 
     public ReportsPanel(java.awt.Window owner) {
         this.owner = owner;
@@ -120,7 +128,7 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
                 reportBtn("Customer Report", "customers", this::showCustomerReport)));
         actionsGrid.add(actionSection("Export",
                 actionBtn("Export Rooms CSV", "export", IconActionButton.Tone.NEUTRAL, () -> exportCsv("rooms")),
-                actionBtn("Export Customers CSV", "export", IconActionButton.Tone.NEUTRAL, () -> exportCsv("customers")),
+                actionBtn("Export Guests CSV", "export", IconActionButton.Tone.NEUTRAL, () -> exportCsv("customers")),
                 actionBtn("Export Bookings CSV", "export", IconActionButton.Tone.NEUTRAL, () -> exportCsv("bookings"))));
         actionsGrid.add(actionSection("Database",
                 actionBtn("Backup Database", "backup", IconActionButton.Tone.GOLD, this::backupDatabase)));
@@ -180,6 +188,100 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
             }
         };
         reportTable = new ModernTable(tableModel);
+        reportTable.setRowHeight(44);
+
+        // Hover row listeners
+        reportTable.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int row = reportTable.rowAtPoint(e.getPoint());
+                if (row != hoveredRow) {
+                    hoveredRow = row;
+                    reportTable.repaint();
+                }
+            }
+        });
+        reportTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                hoveredRow = -1;
+                reportTable.repaint();
+            }
+        });
+
+        // Table Header rounded renderer
+        reportTable.getTableHeader().setDefaultRenderer(new javax.swing.table.TableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                JLabel label = new JLabel(value == null ? "" : value.toString());
+                label.setFont(Theme.fontBold(12));
+                label.setForeground(Theme.GOLD);
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+                label.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+
+                JPanel cell = new JPanel(new BorderLayout()) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        g2.setColor(Theme.DARK_NAVY);
+                        int w = getWidth();
+                        int h = getHeight();
+
+                        if (column == 0) {
+                            g2.fillRoundRect(0, 2, w + 12, h - 4, 12, 12);
+                            g2.fillRect(w - 12, 2, 12, h - 4);
+                        } else if (column == t.getColumnCount() - 1) {
+                            g2.fillRoundRect(-12, 2, w + 12, h - 4, 12, 12);
+                            g2.fillRect(0, 2, 12, h - 4);
+                        } else {
+                            g2.fillRect(0, 2, w, h - 4);
+                        }
+
+                        g2.setColor(Theme.border());
+                        g2.drawLine(0, h - 1, w, h - 1);
+
+                        g2.dispose();
+                    }
+                };
+                cell.setOpaque(false);
+                cell.add(label, BorderLayout.CENTER);
+                return cell;
+            }
+        });
+
+        // Default cell renderer
+        reportTable.setDefaultRenderer(Object.class, new javax.swing.table.TableCellRenderer() {
+            private final JLabel label = new JLabel();
+            {
+                label.setOpaque(true);
+                label.setFont(Theme.fontRegular(13));
+                label.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+            }
+
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                label.setText(value == null ? "" : value.toString());
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+
+                if (isSelected) {
+                    label.setBackground(Theme.ROYAL_BLUE);
+                    label.setForeground(Color.WHITE);
+                } else if (row == hoveredRow) {
+                    label.setBackground(Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9));
+                    label.setForeground(Theme.textPrimary());
+                } else {
+                    label.setBackground(row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt());
+                    label.setForeground(Theme.textPrimary());
+                }
+
+                return label;
+            }
+        });
+
         tableScroll = UiLayout.tableScroll(reportTable);
         tableScroll.getViewport().setBackground(Theme.bgCard());
 
@@ -217,7 +319,6 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
                 stack.add(Box.createVerticalStrut(BTN_GAP));
             }
         }
-        // Keep short sections top-aligned
         JPanel wrap = new JPanel(new BorderLayout());
         wrap.setOpaque(false);
         wrap.add(stack, BorderLayout.NORTH);
@@ -311,7 +412,6 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
             summaryPanel.add(value, gbc);
         }
 
-        // Push content to top
         gbc.gridy = row;
         gbc.weighty = 1;
         gbc.insets = new Insets(0, 0, 0, 0);
@@ -332,29 +432,37 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
         viewerSubtitleLabel.setText(subtitle == null ? " " : subtitle);
         tableModel.setColumnIdentifiers(columns);
         tableModel.setRowCount(0);
-        for (Object[] row : rows) {
-            tableModel.addRow(row);
+        for (Object[] r : rows) {
+            tableModel.addRow(r);
         }
 
         TableColumnModel columnsModel = reportTable.getColumnModel();
         for (int col : centerColumns) {
             if (col >= 0 && col < columnsModel.getColumnCount()) {
-                columnsModel.getColumn(col).setCellRenderer(new DefaultTableCellRenderer() {
+                columnsModel.getColumn(col).setCellRenderer(new javax.swing.table.TableCellRenderer() {
+                    private final JLabel cellLabel = new JLabel();
+                    {
+                        cellLabel.setOpaque(true);
+                        cellLabel.setFont(Theme.fontRegular(13));
+                        cellLabel.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 16));
+                        cellLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    }
                     @Override
-                    public Component getTableCellRendererComponent(javax.swing.JTable table, Object value,
+                    public Component getTableCellRendererComponent(JTable t, Object value,
                                                                    boolean isSelected, boolean hasFocus,
                                                                    int row, int column) {
-                        JLabel label = (JLabel) super.getTableCellRendererComponent(
-                                table, value, isSelected, hasFocus, row, column);
-                        label.setHorizontalAlignment(SwingConstants.CENTER);
-                        label.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 12, 0, 12));
-                        label.setFont(Theme.fontRegular(13));
-                        if (!isSelected) {
-                            label.setBackground(row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt());
-                            label.setForeground(Theme.textPrimary());
+                        cellLabel.setText(value == null ? "" : value.toString());
+                        if (isSelected) {
+                            cellLabel.setBackground(Theme.ROYAL_BLUE);
+                            cellLabel.setForeground(Color.WHITE);
+                        } else if (row == hoveredRow) {
+                            cellLabel.setBackground(Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9));
+                            cellLabel.setForeground(Theme.textPrimary());
+                        } else {
+                            cellLabel.setBackground(row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt());
+                            cellLabel.setForeground(Theme.textPrimary());
                         }
-                        label.setOpaque(true);
-                        return label;
+                        return cellLabel;
                     }
                 });
             }
@@ -370,8 +478,6 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
         viewerCards.show(viewerBody, "table");
         tableScroll.getVerticalScrollBar().setValue(0);
     }
-
-    // ——— Report actions (service calls unchanged) ———
 
     private void showDailyReport() {
         new SwingWorker<BigDecimal, Void>() {
@@ -496,6 +602,8 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
                 try {
                     List<Map<String, Object>> data = get();
                     List<Object[]> rows = new ArrayList<>();
+                    for (Map.Entry<String, Object> e : data.get(0).entrySet()) {
+                    }
                     for (Map<String, Object> row : data) {
                         rows.add(new Object[]{
                                 row.get("fullName"),
@@ -606,7 +714,6 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
                     customersCard.setValue(String.valueOf(s.getTotalCustomers()));
                     occupancyCard.setValue(String.format("%.1f%%", s.getOccupancyRate()));
                 } catch (Exception ex) {
-                    // Keep zero placeholders if stats fail; reports still work
                 }
             }
         }.execute();
@@ -641,9 +748,130 @@ public class ReportsPanel extends JPanel implements MainFrame.RefreshablePanel {
     }
 
     private record RevenueSummaryData(LocalDate today, YearMonth month,
-                                      BigDecimal daily, BigDecimal monthly, int totalRooms) {
+                                       BigDecimal daily, BigDecimal monthly, int totalRooms) {
     }
 
     private record AnalyticsSnapshot(DashboardStats stats, int totalBookings) {
+    }
+
+    // Custom Component: MetricCard (Local premium StatCard implementation)
+    private static class MetricCard extends JPanel {
+        private final JLabel valueLabel;
+        private final JLabel titleLabel;
+        private final String iconKey;
+        private final Color accentColor;
+
+        public MetricCard(String title, String value, String iconKey, Color accentColor) {
+            this.iconKey = iconKey;
+            this.accentColor = accentColor;
+
+            setLayout(new BorderLayout(UiLayout.SPACE_MD, 0));
+            setBackground(Theme.bgCard());
+            setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
+
+            JPanel iconPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 26));
+                    g2.fillOval(0, 0, 36, 36);
+
+                    g2.setColor(accentColor);
+                    g2.setStroke(new java.awt.BasicStroke(1.8f, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
+                    drawCustomIcon(g2, iconKey, accentColor);
+
+                    g2.dispose();
+                }
+
+                @Override
+                public Dimension getPreferredSize() {
+                    return new Dimension(36, 36);
+                }
+            };
+            iconPanel.setOpaque(false);
+
+            JPanel textPanel = new JPanel();
+            textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+            textPanel.setOpaque(false);
+
+            titleLabel = new JLabel(title);
+            titleLabel.setFont(Theme.fontMedium(11));
+            titleLabel.setForeground(Theme.textSecondary());
+
+            valueLabel = new JLabel(value);
+            valueLabel.setFont(Theme.fontBold(18));
+            valueLabel.setForeground(Theme.textPrimary());
+
+            textPanel.add(titleLabel);
+            textPanel.add(Box.createVerticalStrut(2));
+            textPanel.add(valueLabel);
+
+            add(iconPanel, BorderLayout.WEST);
+            add(textPanel, BorderLayout.CENTER);
+        }
+
+        private void drawCustomIcon(Graphics2D g2, String iconKey, Color accentColor) {
+            switch (iconKey) {
+                case "revenue", "daily" -> {
+                    g2.drawRoundRect(8, 10, 20, 15, 3, 3);
+                    g2.drawLine(8, 14, 28, 14);
+                    g2.drawLine(12, 19, 16, 19);
+                }
+                case "monthly" -> {
+                    g2.drawRoundRect(8, 10, 20, 18, 4, 4);
+                    g2.drawLine(8, 16, 28, 16);
+                    g2.drawLine(13, 7, 13, 11);
+                    g2.drawLine(23, 7, 23, 11);
+                }
+                case "bookings" -> {
+                    g2.drawRoundRect(8, 10, 20, 18, 4, 4);
+                    g2.drawLine(8, 16, 28, 16);
+                    g2.drawLine(13, 7, 13, 11);
+                    g2.drawLine(23, 7, 23, 11);
+                }
+                case "customers" -> {
+                    g2.drawOval(14, 10, 8, 8);
+                    g2.drawArc(10, 19, 16, 10, 0, 180);
+                }
+                case "utilization" -> {
+                    g2.drawOval(8, 8, 20, 20);
+                    g2.fillArc(10, 10, 16, 16, 90, -200);
+                }
+                default -> {
+                    g2.drawRect(8, 8, 20, 20);
+                }
+            }
+        }
+
+        public void setValue(String value) {
+            valueLabel.setText(value);
+        }
+
+        public void applyTheme() {
+            updateTheme();
+        }
+
+        public void updateTheme() {
+            setBackground(Theme.bgCard());
+            titleLabel.setForeground(Theme.textSecondary());
+            valueLabel.setForeground(Theme.textPrimary());
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+
+            g2.setColor(Theme.border());
+            g2.setStroke(new java.awt.BasicStroke(1.0f));
+            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+
+            g2.dispose();
+        }
     }
 }

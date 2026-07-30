@@ -57,12 +57,12 @@ public class DashboardService {
 
         // Lightweight COUNT queries (no full row materialization)
         stats.setTodayBookings(countSql(
-                "SELECT COUNT(*) FROM bookings WHERE DATE(created_at) = CURDATE()"));
+                "SELECT COUNT(*) FROM bookings WHERE date(created_at) = date('now', 'localtime')"));
         stats.setTodayCheckIns(countSql(
-                "SELECT COUNT(*) FROM bookings WHERE check_in = CURDATE() "
+                "SELECT COUNT(*) FROM bookings WHERE check_in = date('now', 'localtime') "
                         + "AND booking_status NOT IN ('Cancelled','Checked Out')"));
         stats.setTodayCheckOuts(countSql(
-                "SELECT COUNT(*) FROM bookings WHERE check_out = CURDATE() "
+                "SELECT COUNT(*) FROM bookings WHERE check_out = date('now', 'localtime') "
                         + "AND booking_status IN ('Confirmed','Checked In')"));
         stats.setTodayRevenue(paymentDao.sumToday());
         stats.setMonthRevenue(paymentDao.sumThisMonth());

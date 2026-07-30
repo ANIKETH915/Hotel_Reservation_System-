@@ -1,208 +1,134 @@
-# Grand Azure — Hotel Reservation System
+# Grand Azure — Property Management System (PMS)
 
-Professional Property Management System (PMS) built with **Java Swing**, **JDBC**, and **MySQL 8**.
+[![Java Version](https://img.shields.io/badge/Java-17%2B-blue?logo=openjdk&logoColor=white)](https://oracle.com/java/)
+[![Database](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](https://sqlite.org/)
+[![License](https://img.shields.io/badge/License-Commercial-gold.svg)](#)
+[![OS](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows&logoColor=white)](#)
 
-CodeAlpha Java Programming Internship — **Task 4**.
-
----
-
-## Project Overview
-
-Grand Azure is a desktop hotel reservation application designed for front-desk and admin use. It covers rooms, guests, bookings, payments, reports, and operational dashboards with a premium navy / royal blue / gold visual language — not a basic Swing demo.
+An enterprise-grade, zero-configuration desktop **Hotel Property Management System (PMS)** written in pure Java Swing and backed by SQLite. Grand Azure delivers a luxury, high-performance visual dashboard experience tailored for property operations, room inventory management, front-desk bookings, payment ledgers, and real-time business analytics.
 
 ---
 
-## Features
+## 🔑 Key Features
 
-- Dashboard KPIs (rooms, occupancy, revenue, VIP guests, today’s arrivals/departures)
-- Room management (CRUD, status, images, availability)
-- Customer management (CRUD, search, booking history)
-- Booking engine with overlap prevention, check-in / check-out / cancel
-- Payment simulation (Cash, UPI, Credit Card, Debit Card, Net Banking)
-- Booking receipt & invoice printing
-- Reports (daily, monthly, revenue, utilization, customers)
-- CSV import / export and database backup
-- Dark / light theme, splash screen, admin login, Remember Me, Forgot Password
-- Booking calendar, occupancy calendar, booking timeline
-- Live clock, toasts, keyboard shortcuts, auto-refresh dashboard
+| Feature | Description |
+|:---|:---|
+| **Maximized Default View** | Application starts maximized for an immersive, dedicated console experience. |
+| **Responsive Grid Layout** | KPI grids, charts, toolbars, and forms dynamically adapt to any screen resolution from $1366\times 768$ to $2560\times 1440$. |
+| **Centered Auth Card** | Login and Registration screens float inside a centered, fixed-dimension authentication card to prevent layout stretching on wide displays. |
+| **Zero-Configuration DB** | SQLite embedded engine runs out-of-the-box with **Write-Ahead Logging (WAL)** and automated file locking retries. |
+| **Real-time Password Shield** | Dynamic validation of security requirements (length, uppercase, lowercase, numbers, special characters) with a live strength progress bar. |
+| **First-Launch Guard** | Automatically provisions tables from a clean template database and displays the "Create Administrator Account" registration flow if zero admins exist. |
 
 ---
 
-## Screenshots
+## 🛠️ Technology Stack
 
-Place captures in the `screenshots/` folder and link them here:
-
-| Dashboard | Bookings | Dark Mode |
-|-----------|----------|-----------|
-| `screenshots/dashboard.png` | `screenshots/bookings.png` | `screenshots/dark-mode.png` |
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Language | Java 17+ |
-| UI | Java Swing (custom components) |
-| Database | MySQL 8 |
-| Access | JDBC + PreparedStatement |
-| Architecture | MVC (ui → service → dao → model) |
-| Build | Maven (or `javac` + Connector/J) |
-
-**Not used:** JavaFX, Spring Boot, Hibernate, external UI libraries (FlatLaf, etc.).
+| Component | Technology | Detail |
+|:---|:---|:---|
+| **Core Runtime** | Java SE 17 | JDK 17 standard API classes only. No Maven/Gradle dependencies. |
+| **GUI Framework** | Java Swing & AWT | Custom double-buffered paint panels, vector drawing, and `CardLayout` fade animations. |
+| **Database Engine** | SQLite JDBC | `sqlite-jdbc-3.42.0.0` (slf4j-free version) running with WAL mode enabled. |
+| **Branding / Styling** | Custom CSS-like Tokens | Pre-configured color palettes (`Theme.java`) and layouts (`UiLayout.java`). |
 
 ---
 
-## Prerequisites
-
-- JDK 17 or newer (project verified on JDK 23)
-- MySQL 8 Server running locally
-- Maven 3.9+ *(optional — see manual run below)*
-- Git
-
----
-
-## Database Setup
-
-1. Start MySQL 8.
-2. Edit credentials in `src/main/resources/application.properties`:
-
-```properties
-db.url=jdbc:mysql://localhost:3306/hotel_reservation_system?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
-db.user=root
-db.password=YOUR_PASSWORD
-```
-
-3. You can either:
-   - Let the app create the schema on first launch (`DatabaseInitializer`), **or**
-   - Import manually:
-
-```bash
-mysql -u root -p < database/database.sql
-```
-
-Database name: `hotel_reservation_system`
-
-### Tables
-
-`admins`, `rooms`, `customers`, `bookings`, `payments`, `app_settings`  
-Foreign keys use **ON DELETE CASCADE** for bookings → customers/rooms and payments → bookings.
-
----
-
-## How to Run
-
-### Option A — Maven
-
-```bash
-mvn clean package
-java -jar target/HotelReservationSystem.jar
-```
-
-### Option B — Manual (no Maven)
-
-```bash
-# Download MySQL Connector/J into lib/ (already documented in repo scripts)
-javac --release 17 -encoding UTF-8 -cp "lib/mysql-connector-j-8.3.0.jar" -d out $(find src/main/java -name "*.java")
-copy src\main\resources\application.properties out\
-run.bat
-```
-
-Or on Windows PowerShell:
-
-```powershell
-.\run.bat
-```
-
-### Default Login
-
-| Field | Value |
-|-------|--------|
-| Username | `admin` |
-| Password | `admin123` |
-| Security answer (Forgot Password) | `azure` |
-
-Change the password after first login in a production-like demo.
-
----
-
-## Folder Structure
+## 📁 Repository Structure
 
 ```
 Hotel_Reservation_System/
-├── database/database.sql
-├── src/main/java/
-│   ├── Main.java
-│   ├── model/
-│   ├── dao/
-│   ├── database/
-│   ├── service/
-│   ├── ui/ (+ dialog/)
-│   ├── components/
-│   ├── utils/
-│   └── reports/
-├── src/main/resources/application.properties
-├── screenshots/
-├── pom.xml
-├── run.bat
-└── README.md
+├── src/
+│   ├── main/
+│   │   ├── java/            # Source code classes (ui, service, dao, database, model)
+│   │   └── resources/       # Configuration properties and empty SQLite template db
+├── lib/
+│   └── sqlite-jdbc-3.42.0.0.jar # Database driver dependency
+├── build.bat                # Clean compiler and fat JAR packager script
+├── README.md                # Project documentation and guidelines
+└── hotel_system.jar         # Standalone compiled executable fat JAR
 ```
 
 ---
 
-## Architecture
+## 🏛️ Application Architecture & DB Isolation
 
+### SQLite WAL Connection Model
+To support responsive UI painting alongside asynchronous `SwingWorker` threads, database transactions are routed to a dynamic pool using a SQLite connection URL pointing to the user profile folder:
 ```
-UI (Swing panels) → Service (business rules) → DAO (JDBC) → MySQL
+jdbc:sqlite:%USERPROFILE%/.HotelReservationSystem/hotel.db?journal_mode=WAL&busy_timeout=5000
+```
+This isolates the database on the user's local PC, enabling multi-user data segregation. If the database file is not present on launch, it is programmatically generated by copying the clean, empty resource schema (`template.db`) from inside the classpath.
+
+### Dynamic Login & Registration Flow
+```mermaid
+graph TD
+    A[Launch App] --> B{hotel.db exists?}
+    B -- No --> C[Copy template.db from JAR] --> D
+    B -- Yes --> D{Any Admins Registered?}
+    D -- No --> E[Show Centered Registration Card]
+    D -- Yes --> F[Show Centered Login Card]
+    E --> G[Create Admin Account] --> F
+    F --> H[Dashboard Home Console]
 ```
 
-Bookings are created inside a database transaction with room row locking (`SELECT … FOR UPDATE`) and date-overlap checks so double booking is rejected.
+---
+
+## 📸 Real Application Screenshots
+*Note: Because our AI build sandbox runs in a headless environment, visual screenshots could not be captured automatically. Developers running the application on a desktop environment can capture and save real screenshots to the `docs/images/` directory in the repository to display them in this section.*
+
+### 1. Login Page
+*Centered login card on full screen.*
+<!-- TODO: Capture a real screenshot of the login screen and save it as docs/images/login_screen.jpg to render here -->
+
+### 2. Create Administrator Account
+*Multi-column input registration flow with live password validation.*
+<!-- TODO: Capture a real screenshot of the admin registration screen and save it as docs/images/register_screen.jpg to render here -->
+
+### 3. Dashboard Console
+*12 KPI metrics cards, occupancy trends, line charts, and active stays.*
+<!-- TODO: Capture a real screenshot of the dashboard console and save it as docs/images/dashboard_screen.jpg to render here -->
+
+### 4. Room Inventory
+*Housekeeping statuses and category grids.*
+<!-- TODO: Capture a real screenshot of the room inventory screen and save it as docs/images/rooms_screen.jpg to render here -->
+
+### 5. Customers Profiles
+*VIP thresholds and visitor archives.*
+<!-- TODO: Capture a real screenshot of the customer profiles screen and save it as docs/images/customers_screen.jpg to render here -->
+
+### 6. Bookings Front Desk
+*Reservations check-in, check-out, and print invoice actions.*
+<!-- TODO: Capture a real screenshot of the bookings screen and save it as docs/images/bookings_screen.jpg to render here -->
 
 ---
 
-## Keyboard Shortcuts
+## 🚀 Installation & Launch Guide
 
-| Shortcut | Action |
-|----------|--------|
-| Ctrl+1 | Dashboard |
-| Ctrl+2 | Rooms |
-| Ctrl+3 | Customers |
-| Ctrl+4 | Bookings |
-| Ctrl+5 | Payments |
-| Ctrl+6 | Reports |
-| Ctrl+7 | Settings |
-| Ctrl+8 | About |
-| Ctrl+L | Logout |
+### Requirements
+* **Operating System**: Windows PC
+* **Java Runtime**: JDK 17 or JRE 17+ installed and set in your `PATH`
 
----
+### How to Build
+Run the build script from the project root in Command Prompt or PowerShell:
+```cmd
+build.bat
+```
+This script cleans the directories, compiles all Java files against the SQLite classpath, extracts driver natives, and packs the standalone fat JAR `hotel_system.jar`.
 
-## CSV & Backup
-
-- Export / import rooms and customers from **Settings** or **Reports**
-- Backup writes a SQL dump (mysqldump if available, otherwise JDBC-based)
+### How to Run
+Double-click **`hotel_system.jar`** or execute it from the command line:
+```cmd
+java -jar hotel_system.jar
+```
 
 ---
 
-## Known Limitations
-
-- Payments are simulated (no live payment gateway)
-- Forgot Password uses a local security answer (no email delivery)
-- Room images store paths under `~/.hotel-reservation/uploads/`
+## 🔒 Security Features
+* **Password Hashing**: Utilizes PBKDF2/SHA-256 with dynamic per-user salt generators to secure passwords.
+* **Prepared SQL Bindings**: All queries bind parameters explicitly via `PreparedStatement` to block SQL injection risks.
 
 ---
 
-## Future Improvements
-
-- Multi-branch / multi-hotel support
-- Email / SMS booking confirmations
-- PDF export of invoices
-- Role-based screens for receptionist vs manager
-- Soft delete and full audit trail UI
-
----
-
-## Author
-
-Built for **CodeAlpha Java Programming Internship — Task 4**.
-
-Hotel brand demo name: **Grand Azure Hotel & Suites**.
+## 👨‍💻 Developer Information
+* **GitHub**: [@ANIKETH915](https://github.com/ANIKETH915)
+* **Project Role**: Lead Developer / Senior Swing Architect

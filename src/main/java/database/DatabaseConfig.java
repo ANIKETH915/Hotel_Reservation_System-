@@ -2,14 +2,15 @@ package database;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 public final class DatabaseConfig {
     private static final Properties PROPS = new Properties();
 
     static {
-        try (InputStream in = DatabaseConfig.class.getClassLoader()
-                .getResourceAsStream("application.properties")) {
+        try (InputStream in = DatabaseConfig.class.getResourceAsStream("/application.properties")) {
             if (in != null) {
                 PROPS.load(in);
             } else {
@@ -23,17 +24,23 @@ public final class DatabaseConfig {
     private DatabaseConfig() {
     }
 
+    public static Path getDatabasePath() {
+        String userHome = System.getProperty("user.home");
+        return Paths.get(userHome, ".HotelReservationSystem", "hotel.db");
+    }
+
     public static String getUrl() {
-        return envOrProperty("HOTEL_DB_URL", "db.url",
-                "jdbc:mysql://localhost:3306/hotel_reservation_system?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata");
+        Path dbPath = getDatabasePath();
+        String absPath = dbPath.toAbsolutePath().toString().replace('\\', '/');
+        return "jdbc:sqlite:" + absPath + "?journal_mode=WAL&busy_timeout=5000";
     }
 
     public static String getUser() {
-        return envOrProperty("HOTEL_DB_USER", "db.user", "root");
+        return "";
     }
 
     public static String getPassword() {
-        return envOrProperty("HOTEL_DB_PASSWORD", "db.password", "");
+        return "";
     }
 
     public static String getHotelName() {
@@ -42,13 +49,5 @@ public final class DatabaseConfig {
 
     public static String getUploadDir() {
         return PROPS.getProperty("hotel.upload.dir", "");
-    }
-
-    private static String envOrProperty(String environmentName, String propertyName, String fallback) {
-        String environment = System.getenv(environmentName);
-        if (environment != null && !environment.isBlank()) {
-            return environment;
-        }
-        return PROPS.getProperty(propertyName, fallback);
     }
 }

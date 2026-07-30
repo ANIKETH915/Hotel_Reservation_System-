@@ -105,7 +105,7 @@ public class BookingDao {
         String sql = BASE_SELECT + "FROM bookings b "
                 + "JOIN customers c ON b.customer_id = c.customer_id "
                 + "JOIN rooms r ON b.room_id = r.room_id "
-                + "WHERE b.check_in = CURDATE() "
+                + "WHERE b.check_in = date('now', 'localtime') "
                 + "AND b.booking_status NOT IN ('Cancelled','Checked Out') "
                 + "ORDER BY c.full_name";
         return queryList(sql);
@@ -115,7 +115,7 @@ public class BookingDao {
         String sql = BASE_SELECT + "FROM bookings b "
                 + "JOIN customers c ON b.customer_id = c.customer_id "
                 + "JOIN rooms r ON b.room_id = r.room_id "
-                + "WHERE b.check_out = CURDATE() "
+                + "WHERE b.check_out = date('now', 'localtime') "
                 + "AND b.booking_status IN ('Confirmed','Checked In') "
                 + "ORDER BY c.full_name";
         return queryList(sql);
@@ -125,7 +125,7 @@ public class BookingDao {
         String sql = BASE_SELECT + "FROM bookings b "
                 + "JOIN customers c ON b.customer_id = c.customer_id "
                 + "JOIN rooms r ON b.room_id = r.room_id "
-                + "WHERE DATE(b.created_at) = CURDATE() "
+                + "WHERE date(b.created_at) = date('now', 'localtime') "
                 + "ORDER BY b.created_at DESC";
         return queryList(sql);
     }

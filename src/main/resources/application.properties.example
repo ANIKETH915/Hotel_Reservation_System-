@@ -1,5 +1,2 @@
-db.url=jdbc:mysql://localhost:3306/hotel_reservation_system?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
-db.user=root
-db.password=YOUR_PASSWORD
 hotel.upload.dir=
 hotel.name=Grand Azure Hotel & Suites

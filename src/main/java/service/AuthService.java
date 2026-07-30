@@ -86,4 +86,15 @@ public class AuthService {
         adminDao.updatePassword(admin.getAdminId(), passwordHash, admin.getSalt());
         return true;
     }
+
+    public boolean hasAdmins() throws SQLException {
+        return adminDao.hasAdmins();
+    }
+
+    public void registerAdmin(String username, String password, String fullName, String securityAnswer) throws SQLException {
+        String salt = PasswordUtil.generateSalt();
+        String passwordHash = PasswordUtil.hashPassword(password, salt);
+        String answerHash = PasswordUtil.hashPassword(securityAnswer, salt);
+        adminDao.register(username, passwordHash, salt, fullName, answerHash);
+    }
 }

@@ -5,8 +5,15 @@ import components.Theme;
 import components.Toast;
 import components.UiLayout;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -44,10 +51,10 @@ public class CheckoutDialog extends JDialog {
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiLayout.SPACE_SM, 0));
         buttons.setOpaque(false);
 
-        StyledButton cancelBtn = new StyledButton("Cancel", StyledButton.Style.SECONDARY);
+        DialogButton cancelBtn = new DialogButton("Cancel", false, false);
         cancelBtn.addActionListener(e -> dispose());
 
-        StyledButton confirmBtn = new StyledButton("Confirm Check-out", StyledButton.Style.DANGER);
+        DialogButton confirmBtn = new DialogButton("Confirm Check-out", true, true);
         confirmBtn.addActionListener(e -> doCheckout());
 
         buttons.add(cancelBtn);
@@ -94,5 +101,69 @@ public class CheckoutDialog extends JDialog {
                 }
             }
         }.execute();
+    }
+
+    private static class DialogButton extends StyledButton {
+        private boolean hover = false;
+        private final boolean primary;
+        private final boolean danger;
+
+        public DialogButton(String text, boolean primary, boolean danger) {
+            super(text, danger ? Style.DANGER : (primary ? Style.PRIMARY : Style.SECONDARY));
+            this.primary = primary;
+            this.danger = danger;
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setFont(Theme.fontMedium(13));
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    hover = true;
+                    repaint();
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    hover = false;
+                    repaint();
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (danger) {
+                Color bg = hover ? new Color(0xDC, 0x26, 0x26) : new Color(0xEF, 0x44, 0x44);
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(Color.WHITE);
+            } else if (primary) {
+                Color bg = hover ? new Color(0x25, 0x63, 0xEB) : Theme.ROYAL_BLUE;
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(Color.WHITE);
+            } else {
+                Color bg = hover ? (Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xE5, 0xE7, 0xEB)) : Theme.bgCard();
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(Theme.border());
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.setColor(Theme.textPrimary());
+            }
+
+            g2.setFont(getFont());
+            FontMetrics fm = g2.getFontMetrics();
+            int tw = fm.stringWidth(getText());
+            int tx = (getWidth() - tw) / 2;
+            int ty = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+            g2.drawString(getText(), tx, ty);
+            g2.dispose();
+        }
     }
 }

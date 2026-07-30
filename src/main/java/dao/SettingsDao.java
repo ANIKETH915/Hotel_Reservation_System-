@@ -1,7 +1,6 @@
 package dao;
 
 import database.DatabaseConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,8 +25,7 @@ public class SettingsDao {
     }
 
     public void set(String key, String value) throws SQLException {
-        String sql = "INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?) "
-                + "ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
+        String sql = "INSERT OR REPLACE INTO app_settings (setting_key, setting_value) VALUES (?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, key);

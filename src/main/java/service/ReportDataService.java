@@ -47,7 +47,7 @@ public class ReportDataService {
         }
 
         Map<String, Double> utilization = new LinkedHashMap<>();
-        String sql = "SELECT r.room_number, COALESCE(SUM(DATEDIFF(LEAST(b.check_out, ?), GREATEST(b.check_in, ?))), 0) AS occupied_days "
+        String sql = "SELECT r.room_number, COALESCE(SUM(CAST(julianday(min(b.check_out, ?)) - julianday(max(b.check_in, ?)) AS INTEGER)), 0) AS occupied_days "
                 + "FROM rooms r "
                 + "LEFT JOIN bookings b ON r.room_id = b.room_id "
                 + "  AND b.booking_status NOT IN ('Cancelled') "

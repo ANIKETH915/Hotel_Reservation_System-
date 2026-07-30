@@ -43,7 +43,7 @@ public class BackupService {
     private List<String> listTables(Connection conn) throws SQLException {
         List<String> tables = new ArrayList<>();
         try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SHOW TABLES")) {
+             ResultSet rs = st.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")) {
             while (rs.next()) {
                 tables.add(rs.getString(1));
             }
@@ -53,9 +53,9 @@ public class BackupService {
 
     private void writeCreateTable(Connection conn, BufferedWriter writer, String table) throws Exception {
         try (Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SHOW CREATE TABLE `" + table + "`")) {
+             ResultSet rs = st.executeQuery("SELECT sql FROM sqlite_master WHERE type='table' AND name = '" + table + "'")) {
             if (rs.next()) {
-                writer.write(rs.getString(2) + ";");
+                writer.write(rs.getString(1) + ";");
                 writer.newLine();
             }
         }

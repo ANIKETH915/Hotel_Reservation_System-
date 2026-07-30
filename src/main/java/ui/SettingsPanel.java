@@ -17,8 +17,10 @@ import database.DatabaseConnection;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -50,10 +52,6 @@ import service.ImportExportService;
 import service.ReportDataService;
 import service.SettingsService;
 
-/**
- * Enterprise settings dashboard — UI redesign only.
- * Persist/load uses existing SettingsService.setSetting / get APIs.
- */
 public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel {
 
     private static final int CARD_PAD = 24;
@@ -192,7 +190,7 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
         form.add(themeRow, gbc);
         syncThemeCards();
 
-        StyledButton saveBtn = new StyledButton("Save Settings", StyledButton.Style.PRIMARY);
+        PremiumButton saveBtn = new PremiumButton("Save Settings");
         saveBtn.setPreferredSize(new Dimension(0, 42));
         saveBtn.addActionListener(e -> saveSettings());
         gbc.gridy = row * 2 + 2;
@@ -244,10 +242,10 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
         groups.setOpaque(false);
         groups.add(toolGroup("Import", "export",
                 toolBtn("Import Rooms CSV", "rooms", IconActionButton.Tone.NEUTRAL, () -> importCsv("rooms")),
-                toolBtn("Import Customers CSV", "customers", IconActionButton.Tone.NEUTRAL, () -> importCsv("customers"))));
+                toolBtn("Import Guests CSV", "customers", IconActionButton.Tone.NEUTRAL, () -> importCsv("customers"))));
         groups.add(toolGroup("Export", "export",
                 toolBtn("Export Rooms CSV", "rooms", IconActionButton.Tone.NEUTRAL, () -> exportCsv("rooms")),
-                toolBtn("Export Customers CSV", "customers", IconActionButton.Tone.NEUTRAL, () -> exportCsv("customers"))));
+                toolBtn("Export Guests CSV", "customers", IconActionButton.Tone.NEUTRAL, () -> exportCsv("customers"))));
         groups.add(toolGroup("Backup", "backup",
                 toolBtn("Backup Database", "backup", IconActionButton.Tone.GOLD, this::backupDb)));
 
@@ -564,7 +562,6 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
                     setInfo(8, Theme.isDark() ? "Dark Mode" : "Light Mode");
                     setInfo(9, data.currency);
                 } catch (Exception ignored) {
-                    // keep fields
                 }
             }
         }.execute();
@@ -578,7 +575,6 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
                 return rs.getInt(1);
             }
         } catch (Exception ignored) {
-            // fall through
         }
         return 0;
     }
@@ -633,7 +629,6 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
     ) {
     }
 
-    /** Single labeled system-info row with icon. */
     private static final class InfoRow extends JPanel {
         private final JLabel label;
         private final JLabel value;
@@ -688,6 +683,54 @@ public class SettingsPanel extends JPanel implements MainFrame.RefreshablePanel 
             label.setForeground(Theme.textSecondary());
             value.setForeground(Theme.textPrimary());
             repaint();
+        }
+    }
+
+    // Custom Component: PremiumButton (for rounded capsule styling)
+    private static class PremiumButton extends StyledButton {
+        private boolean hover = false;
+
+        public PremiumButton(String text) {
+            super(text, Style.PRIMARY);
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            setFont(Theme.fontBold(13));
+            setForeground(Color.WHITE);
+
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent e) {
+                    hover = true;
+                    repaint();
+                }
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent e) {
+                    hover = false;
+                    repaint();
+                }
+            });
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            Color bg = hover ? new Color(0x25, 0x63, 0xEB) : Theme.ROYAL_BLUE;
+            g2.setColor(bg);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+
+            g2.setColor(Color.WHITE);
+            g2.setFont(getFont());
+            FontMetrics fm = g2.getFontMetrics();
+            int tw = fm.stringWidth(getText());
+            int tx = (getWidth() - tw) / 2;
+            int ty = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+            g2.drawString(getText(), tx, ty);
+            g2.dispose();
         }
     }
 }

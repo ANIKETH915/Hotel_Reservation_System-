@@ -50,7 +50,7 @@ public class RoomDao {
 
     public Room findByIdForUpdate(Connection conn, int roomId) throws SQLException {
         String sql = "SELECT room_id, room_number, room_type, floor, price, capacity, status, image_path "
-                + "FROM rooms WHERE room_id = ? FOR UPDATE";
+                + "FROM rooms WHERE room_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, roomId);
             try (ResultSet rs = ps.executeQuery()) {

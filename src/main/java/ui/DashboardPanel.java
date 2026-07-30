@@ -15,6 +15,11 @@ import components.StyledButton;
 import components.ConfirmDialog;
 import components.TableCard;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import javax.swing.SwingConstants;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Color;
@@ -274,8 +279,72 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         table.setRowHeight(46);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
-        table.setSelectionBackground(Theme.tableHover());
-        table.setSelectionForeground(Theme.textPrimary());
+        table.setSelectionBackground(Theme.ROYAL_BLUE);
+        table.setSelectionForeground(Color.WHITE);
+
+        // Hover row mouse listeners
+        table.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                Object oldHover = table.getClientProperty("hoveredRow");
+                int oldHoverRow = oldHover instanceof Integer ? (Integer) oldHover : -1;
+                if (row != oldHoverRow) {
+                    table.putClientProperty("hoveredRow", row);
+                    table.repaint();
+                }
+            }
+        });
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent e) {
+                table.putClientProperty("hoveredRow", -1);
+                table.repaint();
+            }
+        });
+
+        // JTableHeader rounded renderer
+        table.getTableHeader().setDefaultRenderer(new javax.swing.table.TableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value, boolean isSelected,
+                                                           boolean hasFocus, int row, int column) {
+                JLabel label = new JLabel(value == null ? "" : value.toString());
+                label.setFont(Theme.fontBold(11));
+                label.setForeground(Theme.GOLD);
+                label.setHorizontalAlignment(SwingConstants.LEFT);
+                label.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+
+                JPanel cell = new JPanel(new BorderLayout()) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        Graphics2D g2 = (Graphics2D) g.create();
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        g2.setColor(Theme.DARK_NAVY);
+                        int w = getWidth();
+                        int h = getHeight();
+
+                        if (column == 0) {
+                            g2.fillRoundRect(0, 2, w + 10, h - 4, 10, 10);
+                            g2.fillRect(w - 10, 2, 10, h - 4);
+                        } else if (column == t.getColumnCount() - 1) {
+                            g2.fillRoundRect(-10, 2, w + 10, h - 4, 10, 10);
+                            g2.fillRect(0, 2, 10, h - 4);
+                        } else {
+                            g2.fillRect(0, 2, w, h - 4);
+                        }
+
+                        g2.setColor(Theme.border());
+                        g2.drawLine(0, h - 1, w, h - 1);
+
+                        g2.dispose();
+                    }
+                };
+                cell.setOpaque(false);
+                cell.add(label, BorderLayout.CENTER);
+                return cell;
+            }
+        });
 
         // Assign Custom Renderers
         table.getColumnModel().getColumn(0).setMinWidth(48);
@@ -389,7 +458,6 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                     pageHeader.setSubtitle("Luxury Hotel Operations Console · " + DateUtil.format(LocalDate.now())
                             + " · Auto-refreshes every 60s");
                 } catch (Exception ex) {
-                    ex.printStackTrace();
                     Toast.error(mainFrame, "Failed to load property dashboard data: " + ex.getMessage());
                 }
             }
@@ -480,6 +548,11 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if (value == null) return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             String name = value.toString();
+            
+            Object hoverProp = table.getClientProperty("hoveredRow");
+            int hoverRow = hoverProp instanceof Integer ? (Integer) hoverProp : -1;
+            boolean isHovered = (row == hoverRow);
+
             JPanel panel = new JPanel() {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -513,7 +586,16 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                 }
             };
             panel.setOpaque(true);
-            panel.setBackground(isSelected ? table.getSelectionBackground() : (row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt()));
+
+            Color bgCol;
+            if (isSelected) {
+                bgCol = Theme.ROYAL_BLUE;
+            } else if (isHovered) {
+                bgCol = Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9);
+            } else {
+                bgCol = row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt();
+            }
+            panel.setBackground(bgCol);
             return panel;
         }
     }
@@ -524,10 +606,25 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
             JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             label.setFont(Theme.fontRegular(13));
             label.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-            if (!isSelected) {
-                label.setBackground(row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt());
-                label.setForeground(Theme.textPrimary());
+
+            Object hoverProp = table.getClientProperty("hoveredRow");
+            int hoverRow = hoverProp instanceof Integer ? (Integer) hoverProp : -1;
+            boolean isHovered = (row == hoverRow);
+
+            Color bgCol;
+            Color fgCol;
+            if (isSelected) {
+                bgCol = Theme.ROYAL_BLUE;
+                fgCol = Color.WHITE;
+            } else if (isHovered) {
+                bgCol = Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9);
+                fgCol = Theme.textPrimary();
+            } else {
+                bgCol = row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt();
+                fgCol = Theme.textPrimary();
             }
+            label.setBackground(bgCol);
+            label.setForeground(fgCol);
             return label;
         }
     }
@@ -539,6 +636,10 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
             String text = value.toString();
             Color statusColor = Theme.statusColor(text);
             
+            Object hoverProp = table.getClientProperty("hoveredRow");
+            int hoverRow = hoverProp instanceof Integer ? (Integer) hoverProp : -1;
+            boolean isHovered = (row == hoverRow);
+
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 11)) {
                 @Override
                 protected void paintComponent(Graphics g) {
@@ -556,7 +657,16 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
                 }
             };
             panel.setOpaque(true);
-            panel.setBackground(isSelected ? table.getSelectionBackground() : (row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt()));
+
+            Color bgCol;
+            if (isSelected) {
+                bgCol = Theme.ROYAL_BLUE;
+            } else if (isHovered) {
+                bgCol = Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9);
+            } else {
+                bgCol = row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt();
+            }
+            panel.setBackground(bgCol);
             
             JLabel label = new JLabel(text);
             label.setFont(Theme.fontBold(10));
@@ -625,7 +735,20 @@ public class DashboardPanel extends JPanel implements MainFrame.RefreshablePanel
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Booking b = (Booking) value;
-            panel.setBooking(b, isSelected ? table.getSelectionBackground() : (row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt()));
+
+            Object hoverProp = table.getClientProperty("hoveredRow");
+            int hoverRow = hoverProp instanceof Integer ? (Integer) hoverProp : -1;
+            boolean isHovered = (row == hoverRow);
+
+            Color bgCol;
+            if (isSelected) {
+                bgCol = Theme.ROYAL_BLUE;
+            } else if (isHovered) {
+                bgCol = Theme.isDark() ? new Color(0x1E, 0x29, 0x3B) : new Color(0xF1, 0xF5, 0xF9);
+            } else {
+                bgCol = row % 2 == 0 ? Theme.bgCard() : Theme.tableAlt();
+            }
+            panel.setBooking(b, bgCol);
             return panel;
         }
     }
