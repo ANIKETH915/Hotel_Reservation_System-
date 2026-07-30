@@ -1,8 +1,11 @@
 target/
 out/
+build/
+release/
 lib/
 *.class
 *.jar
+!hotel_system.jar
 .idea/
 *.iml
 .classpath
